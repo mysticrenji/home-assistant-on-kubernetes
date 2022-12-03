@@ -1,0 +1,160 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home-assistant
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: home-assistant
+  name: home-assistant
+spec:
+  selector:
+    app: home-assistant
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8123
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: home-assistant
+  name: home-assistant
+  labels:
+    app: home-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-assistant
+  template:
+    metadata:
+      labels:
+        app: home-assistant
+    spec:
+      containers:
+      - name: home-assistant
+        image: homeassistant/aarch64-homeassistant
+        resources:
+          requests:
+            memory: "1.5Gi"
+          limits:
+            memory: "2Gi"
+        ports:
+        - containerPort: 8123
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        - mountPath: /run/dbus
+          name: d-bus
+          readOnly: true
+        # - mountPath: /dev/ttyUSB1
+        #   name: zigbee
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+      volumes:
+      - name: config
+        hostPath:
+          path: /tmp/ha
+          type: DirectoryOrCreate
+      - name: d-bus
+        hostPath:
+          path: /run/dbus
+#      - name: zigbee
+#        hostPath:
+#          path: /dev/ttyUSB1
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   namespace: home-assistant
+#   name: home-assistant
+# spec:
+#   rules:
+#   - host: [REDACTED]
+#     http:
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend:
+#           service:
+#             name: home-assistant
+#             port:
+#               number: 80
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   namespace: home-assistant
+#   name: zwavejs2mqtt
+# spec:
+#   selector:
+#     app: zwavejs2mqtt
+#   type: NodePort
+#   ports:
+#   - name: http
+#     protocol: TCP
+#     port: 8091
+#     targetPort: 8091
+#     nodePort: 30091
+#   - name: ws
+#     protocol: TCP
+#     port: 3000
+#     targetPort: 3000
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   namespace: home-assistant
+#   name: zwavejs2mqtt
+#   labels:
+#     app: zwavejs2mqtt
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: zwavejs2mqtt
+#   template:
+#     metadata:
+#       labels:
+#         app: zwavejs2mqtt
+#     spec:
+#       affinity:
+#         nodeAffinity:
+#           requiredDuringSchedulingIgnoredDuringExecution:
+#             nodeSelectorTerms:
+#             - matchExpressions:
+#               - key: kubernetes.io/hostname
+#                 operator: In
+#                 values:
+#                 - homelab-us-east-1-nano-1
+#       containers:
+#       - name: zwavejs2mqtt
+#         image: zwavejs/zwavejs2mqtt:4.5.1
+#         ports:
+#         - containerPort: 8091
+#         - containerPort: 3000
+#         volumeMounts:
+#         - mountPath: /usr/src/app/store
+#           name: config
+#         - mountPath: /dev/ttyUSB0
+#           name: zwave
+#         securityContext:
+#           privileged: true
+#       volumes:
+#       - name: config
+#         hostPath:
+#           path: /etc/zwavejs2mqtt
+#           type: DirectoryOrCreate
+#       - name: zwave
+#         hostPath:
+#           path: /dev/ttyUSB0
