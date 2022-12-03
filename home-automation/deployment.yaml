@@ -41,9 +41,9 @@ spec:
         image: homeassistant/aarch64-homeassistant
         resources:
           requests:
-            memory: "1.5Gi"
+            memory: "600Mi"
           limits:
-            memory: "2Gi"
+            memory: "1Gi"
         ports:
         - containerPort: 8123
         volumeMounts:
@@ -64,7 +64,7 @@ spec:
       volumes:
       - name: config
         hostPath:
-          path: /tmp/ha
+          path: /tmp/home-assistant
           type: DirectoryOrCreate
       - name: d-bus
         hostPath:
