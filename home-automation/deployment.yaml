@@ -41,9 +41,9 @@ spec:
         image: homeassistant/aarch64-homeassistant
         resources:
           requests:
-            memory: "600Mi"
+            memory: "512Mi"
           limits:
-            memory: "1Gi"
+            memory: "700Mi"
         ports:
         - containerPort: 8123
         volumeMounts:
