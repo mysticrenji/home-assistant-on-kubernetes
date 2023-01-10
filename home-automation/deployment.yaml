@@ -49,11 +49,21 @@ spec:
         volumeMounts:
         - mountPath: /config
           name: config
+        - mountPath: /config/configuration.yaml
+          subPath: configuration.yaml
+          name: configmap-file
+        - mountPath: /config/automations.yaml
+          subPath: automations.yaml
+          name: configmap-file
+        - mountPath: /media
+          name: media-volume          
         # - mountPath: /run/dbus
         #   name: d-bus
         #   readOnly: true
         - mountPath: /dev/ttyUSB1
           name: zigbee
+        #- mountPath: /dev/video0
+        #  name: cam
         securityContext:
           privileged: true
           capabilities:
@@ -63,33 +73,26 @@ spec:
               - SYS_ADMIN
       volumes:
       - name: config
+        persistentVolumeClaim:
+          claimName: home-assistant-pvc
+      - name: media-volume
         hostPath:
-          path: /tmp/home-assistant
-          type: DirectoryOrCreate
+          path: /tmp/media
+      - name: configmap-file
+        configMap:
+          name: home-assistant-configmap
+      #  hostPath:
+      #    path: /tmp/home-assistant
+      #    type: DirectoryOrCreate
       # - name: d-bus
       #   hostPath:
       #     path: /run/dbus
       - name: zigbee
         hostPath:
           path: /dev/ttyACM0
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   namespace: home-assistant
-#   name: home-assistant
-# spec:
-#   rules:
-#   - host: [REDACTED]
-#     http:
-#       paths:
-#       - pathType: Prefix
-#         path: /
-#         backend:
-#           service:
-#             name: home-assistant
-#             port:
-#               number: 80
+      #- name: cam
+      #  hostPath:
+      #    path: /dev/video0
 ---
 apiVersion: v1
 kind: Service
@@ -136,17 +139,20 @@ spec:
         - containerPort: 3000
         volumeMounts:
         - mountPath: /usr/src/app/store
-          name: config
+          name: configuration
         - mountPath: /dev/ttyACM0
           name: zwave
         securityContext:
           privileged: true
       volumes:
-      - name: config
-        hostPath:
-          path: /tmp/zwavejs2mqtt
-          type: DirectoryOrCreate
+      - name: configuration
+        persistentVolumeClaim:
+            claimName: zwavejs2mqtt-pvc
+#        hostPath:
+#          path: /tmp/zwavejs2mqtt
+#          type: DirectoryOrCreate
       - name: zwave
         hostPath:
           path: /dev/ttyACM0
+
 
