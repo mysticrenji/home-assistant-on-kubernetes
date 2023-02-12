@@ -1,0 +1,100 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-plex
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kube-plex
+  name: kube-plex
+spec:
+  selector:
+    app: kube-plex
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 32400
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: kube-plex
+  name: kube-plex
+  labels:
+    app: kube-plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-plex
+  template:
+    metadata:
+      labels:
+        app: kube-plex
+    spec:
+      containers:
+      - name: kube-plex
+        image: lscr.io/linuxserver/plex:latest
+        resources:
+          requests:
+            memory: "256Mi"
+          limits:
+            memory: "512Mi"
+        ports:
+        - containerPort: 8123
+        volumeMounts:
+            - mountPath: /config
+              name: plex-config
+            - mountPath: /tv
+              name: plex-tv
+            - mountPath: /movies
+              name: plex-movies
+        env:
+          - name: NVIDIA_DRIVER_CAPABILITIES
+            value: compute,video,utility
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: all
+          - name: PGID
+            value: "1001"
+          - name: PLEX_CLAIM
+            value: 'claim-Mf_yNfdeAptgWEKoYGxU'
+          - name: PUID
+            value: "1001"
+          - name: VERSION
+            value: docker
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+      volumes:
+        - name: plex-config
+          persistentVolumeClaim:
+            claimName: plex-config
+        - name: plex-tv
+          hostPath:
+            path: /home/edgeblazer/plex/media/
+            type: Directory
+        - name: plex-movies
+          hostPath:
+            path: /home/edgeblazer/plex/movies/
+            type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: kube-plex
+  name: plex-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+

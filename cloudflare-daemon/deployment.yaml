@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: cloudflared
-        image: cloudflare/cloudflared:2022.11.1-arm64
+        image: cloudflare/cloudflared:2023.2.1-arm64
         args:
         - tunnel
         # Points cloudflared to the config file, which configures what
@@ -93,6 +93,12 @@ data:
     # The first rule proxies traffic to the httpbin sample Service defined in app.yaml
     - hostname: home.geekfarmer.dev
       service: http://home-assistant.home-assistant.svc.cluster.local
+    - hostname: nginx.geekfarmer.dev
+      service: http://nginx.default.svc.cluster.local
+    - hostname: vscode.geekfarmer.dev
+      service: http://kube-plex.kube-plex.svc.cluster.local
+    - hostname: plex.geekfarmer.dev
+      service: http://kube-plex.kube-plex.svc.cluster.local
     # This rule sends traffic to the built-in hello-world HTTP server. This can help debug connectivity
     # issues. If hello.example.com resolves and tunnel.example.com does not, then the problem is
     # in the connection from cloudflared to your local service, not from the internet to cloudflared.
