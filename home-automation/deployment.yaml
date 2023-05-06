@@ -37,8 +37,12 @@ spec:
         app: home-assistant
     spec:
       containers:
+      - name: bluez
+        image: ghcr.io/mysticrenji/bluez-service:v1.0.0
+        securityContext:
+          privileged: true
       - name: home-assistant
-        image: homeassistant/aarch64-homeassistant
+        image: homeassistant/aarch64-homeassistant:2023.3.0
         resources:
           requests:
             memory: "256Mi"
@@ -71,6 +75,7 @@ spec:
               - NET_ADMIN
               - NET_RAW
               - SYS_ADMIN
+      hostNetwork: true
       volumes:
       - name: config
         persistentVolumeClaim:
@@ -154,5 +159,88 @@ spec:
       - name: zwave
         hostPath:
           path: /dev/ttyACM0
-
-
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: home-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: arm64v8/eclipse-mosquitto
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 1883
+        - containerPort: 9001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: home-assistant
+  name: mosquitto-service
+spec:
+  selector:
+    app: mosquitto-service
+  type: NodePort
+  ports:
+  - name: mqtt
+    protocol: TCP
+    port: 1883
+    targetPort: 1883
+  - name: mqtt1
+    protocol: TCP
+    port: 9001
+    targetPort: 9001        
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: bluez
+#   namespace: home-assistant
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: bluez
+#   template:
+#     metadata:
+#       labels:
+#         app: bluez
+#     spec:
+#       containers:
+#       - name: bluez
+#         image: ghcr.io/mysticrenji/bluez-service:v1.0.0
+#         securityContext:
+#           capabilities:
+#             add:
+#               - NET_ADMIN
+#         ports:
+#         - containerPort: 3000
+#       hostNetwork: true
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   namespace: home-assistant
+#   name: bluez-service
+# spec:
+#   selector:
+#     app: bluez-service
+#   type: NodePort
+#   ports:
+#   - name: http
+#     protocol: TCP
+#     port: 3000
+#     targetPort: 3000
+#     nodePort: 30095
