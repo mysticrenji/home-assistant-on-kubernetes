@@ -1,6 +1,9 @@
 # Home-Assistant on K3s Cluster
 Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64)
 
+## Architecture
+![Architecture](./images/Home%20Automation.png)
+
 ## K3s Install on Nvidia Jetson ARM64 utlizing Containerd Runtime
 ```
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.26.3+k3s1" sh -s -
