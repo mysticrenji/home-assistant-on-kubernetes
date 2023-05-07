@@ -4,7 +4,7 @@ Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64)
 ## Architecture
 ![Architecture](./images/Home%20Automation.png)
 
-## K3s Install on Nvidia Jetson ARM64 utlizing Containerd Runtime
+## Install K3s on Nvidia Jetson ARM64 utlizing Containerd Runtime
 ```
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.26.3+k3s1" sh -s -
 ```
@@ -21,7 +21,7 @@ kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.
 
 ## Install Cloudflare Daemon for Secure Public Access
 
-The below will create a deployment with running cloudflare daemon to connect to connect to cloudflare platform, allowing access to the your internally hosted pods
+The below will create a deployment with running cloudflare daemon to connect t to cloudflare platform, allowing access to the your internally hosted pods
 
 ```
 kubectl create -f ./cloudflare-daemon/deployment.yaml
