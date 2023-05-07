@@ -1,17 +1,30 @@
-# k3s-on-nvidia-jetson
-K3s Cluster on Nvidia Jetson
+# Home-Assistant on K3s Cluster
+Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64)
 
 ## K3s Install on Nvidia Jetson ARM64 utlizing Containerd Runtime
 ```
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.24.8+k3s1" sh -s -
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.26.3+k3s1" sh -s -
 ```
 
-## Install K8s Device Plugin for Nvidia
+## Install Kubernetes Device Plugin for Nvidia
+
+For tapping GPU capabilities in K3s cluster, it needs to follow a few steps
+
+[K3s Nvidia Setup](https://docs.k3s.io/advanced#nvidia-container-runtime-support)
+
 ```
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.10.0/nvidia-device-plugin.yml
 ```
 
-## Install MetalLB
+## Install Cloudflare Daemon for Secure Public Access
+
+The below will create a deployment with running cloudflare daemon to connect to connect to cloudflare platform, allowing access to the your internally hosted pods
+
+```
+kubectl create -f ./cloudflare-daemon/deployment.yaml
+```
+
+## Installing MetalLB 
 ```
 Instll MetalLB
 --------------
@@ -38,7 +51,7 @@ data:
 
 ```
 
-## Install Cert Manager
+## Install Cert Manager 
 ```
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
