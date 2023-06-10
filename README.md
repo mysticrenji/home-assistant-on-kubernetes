@@ -67,4 +67,15 @@ helm repo add jetstack https://charts.jetstack.io
 helm repo update
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set installCRDs=true
 ```
+## Add Kubernetes Worker nodes from different network(different location)
+
+1. First we need to make sure that both the control plane and worker nodes are able to communicate with each other. To solve this issue, I have made use of tailscale VPN which will install agents on the ARM64 devices. Tailscale features free connectivity upto 3 nodes
+```
+curl -fsSL https://tailscale.com/install.sh | sh
+```
+2. In the worker nodes, use the below code snippet
+```
+TOKEN="get token from the control server"
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.26.3+k3s1" K3S_URL=http://[ipfromtailscale]:6443 K3S_TOKEN=$TOKEN sh -s - --snapshotter=native
+```
 
