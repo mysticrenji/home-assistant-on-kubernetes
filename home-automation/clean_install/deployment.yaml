@@ -45,7 +45,7 @@ spec:
         securityContext:
           privileged: true
       - name: ha-india
-        image: homeassistant/aarch64-homeassistant:2023.3.0
+        image: ghcr.io/mysticrenji/homeassistant-arm64:2023.3.0
         resources:
           requests:
             memory: "256Mi"
