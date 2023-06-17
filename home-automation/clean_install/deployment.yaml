@@ -1,0 +1,215 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ha-india
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ha-india
+  name: ha-india
+spec:
+  selector:
+    app: ha-india
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8123
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ha-india
+  name: ha-india
+  labels:
+    app: ha-india
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ha-india
+  template:
+    metadata:
+      labels:
+        app: ha-india
+    spec:
+      # restartPolicy: OnFailure 
+      # imagePullSecrets:
+      # - name: regcred
+      containers:
+      - name: bluez
+        image: ghcr.io/mysticrenji/bluez-service:v1.0.0
+        securityContext:
+          privileged: true
+      - name: ha-india
+        image: homeassistant/aarch64-homeassistant:2023.3.0
+        resources:
+          requests:
+            memory: "256Mi"
+          limits:
+            memory: "756Mi"
+        ports:
+        - containerPort: 8123
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        - mountPath: /config/configuration.yaml
+          subPath: configuration.yaml
+          name: configmap-file-india
+        - mountPath: /config/automations.yaml
+          subPath: automations.yaml
+          name: configmap-file-india
+        # - mountPath: /media
+        #   name: media-volume          
+        # - mountPath: /run/dbus
+        #   name: d-bus
+        #   readOnly: true
+        # - mountPath: /dev/ttyUSB1
+        #   name: zigbee
+        #- mountPath: /dev/video0
+        #  name: cam
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+      hostNetwork: true
+      nodeSelector:
+        workload: india
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: ha-india-pvc
+      # - name: media-volume
+      #   hostPath:
+      #     path: /tmp/media
+      - name: configmap-file-india
+        configMap:
+          name: ha-india-configmap
+      #  hostPath:
+      #    path: /tmp/home-assistant
+      #    type: DirectoryOrCreate
+      # - name: d-bus
+      #   hostPath:
+      #     path: /run/dbus
+      # - name: zigbee
+      #   hostPath:
+      #     path: /dev/ttyACM0
+      #- name: cam
+      #  hostPath:
+      #    path: /dev/video0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ha-india
+  name: zwavejs2mqtt
+spec:
+  selector:
+    app: zwavejs2mqtt
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8091
+    targetPort: 8091
+    # nodePort: 30092
+  - name: ws
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ha-india
+  name: zwavejs2mqtt-india
+  labels:
+    app: zwavejs2mqtt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zwavejs2mqtt
+  template:
+    metadata:
+      labels:
+        app: zwavejs2mqtt
+    spec:
+      # restartPolicy: OnFailure 
+      containers:
+      - name: zwavejs2mqtt
+        image: zwavejs/zwavejs2mqtt:4.5.1
+        ports:
+        - containerPort: 8091
+        - containerPort: 3000
+        volumeMounts:
+        - mountPath: /usr/src/app/store
+          name: configuration
+        # - mountPath: /dev/ttyACM0
+        #   name: zwave
+        securityContext:
+          privileged: true
+      volumes:
+      - name: configuration
+        persistentVolumeClaim:
+            claimName: zwavejs2mqtt-india-pvc
+      nodeSelector:
+        workload: india
+#        hostPath:
+#          path: /tmp/zwavejs2mqtt
+#          type: DirectoryOrCreate
+      # - name: zwave
+      #   hostPath:
+      #     path: /dev/ttyACM0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: ha-india
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: arm64v8/eclipse-mosquitto
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 1883
+        - containerPort: 9001
+      nodeSelector:
+        workload: india
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ha-india
+  name: mosquitto-service
+spec:
+  selector:
+    app: mosquitto-service
+  type: ClusterIP
+  ports:
+  - name: mqtt
+    protocol: TCP
+    port: 1883
+    targetPort: 1883
+  - name: mqtt1
+    protocol: TCP
+    port: 9001
+    targetPort: 9001        
+

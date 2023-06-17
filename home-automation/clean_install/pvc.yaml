@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:   
+  name: ha-india
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ha-india-pvc
+  labels:
+    app: ha-india
+  namespace: ha-india
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 9Gi 
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zwavejs2mqtt-india-pvc
+  labels:
+    app: zwavejs2mqtt
+  namespace: ha-india
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bluez-pvc
+  labels:
+    app: bluez
+  namespace: ha-india
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 125Mi
+
