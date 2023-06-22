@@ -36,9 +36,6 @@ spec:
       labels:
         app: ha-india
     spec:
-      # restartPolicy: OnFailure 
-      # imagePullSecrets:
-      # - name: regcred
       containers:
       - name: bluez
         image: ghcr.io/mysticrenji/bluez-service:v1.0.0
@@ -46,11 +43,11 @@ spec:
           privileged: true
       - name: ha-india
         image: ghcr.io/mysticrenji/homeassistant-arm64:2023.3.0
-        resources:
-          requests:
-            memory: "256Mi"
-          limits:
-            memory: "756Mi"
+#        resources:
+#          requests:
+#            memory: "1Gi"
+#          limits:
+#            memory: "1.5Gi"
         ports:
         - containerPort: 8123
         volumeMounts:
@@ -62,22 +59,15 @@ spec:
         - mountPath: /config/automations.yaml
           subPath: automations.yaml
           name: configmap-file-india
-        # - mountPath: /media
-        #   name: media-volume          
-        # - mountPath: /run/dbus
-        #   name: d-bus
-        #   readOnly: true
-        # - mountPath: /dev/ttyUSB1
-        #   name: zigbee
-        #- mountPath: /dev/video0
-        #  name: cam
+        - mountPath: /dev/ttyUSB1
+          name: zigbee
         securityContext:
           privileged: true
-          capabilities:
-            add:
-              - NET_ADMIN
-              - NET_RAW
-              - SYS_ADMIN
+          # capabilities:
+          #   add:
+          #     - NET_ADMIN
+          #     - NET_RAW
+          #     - SYS_ADMIN
       hostNetwork: true
       nodeSelector:
         workload: india
@@ -85,24 +75,12 @@ spec:
       - name: config
         persistentVolumeClaim:
           claimName: ha-india-pvc
-      # - name: media-volume
-      #   hostPath:
-      #     path: /tmp/media
       - name: configmap-file-india
         configMap:
           name: ha-india-configmap
-      #  hostPath:
-      #    path: /tmp/home-assistant
-      #    type: DirectoryOrCreate
-      # - name: d-bus
-      #   hostPath:
-      #     path: /run/dbus
-      # - name: zigbee
-      #   hostPath:
-      #     path: /dev/ttyACM0
-      #- name: cam
-      #  hostPath:
-      #    path: /dev/video0
+      - name: zigbee
+        hostPath:
+          path: /dev/ttyACM0
 ---
 apiVersion: v1
 kind: Service
@@ -118,7 +96,6 @@ spec:
     protocol: TCP
     port: 8091
     targetPort: 8091
-    # nodePort: 30092
   - name: ws
     protocol: TCP
     port: 3000
@@ -151,22 +128,19 @@ spec:
         volumeMounts:
         - mountPath: /usr/src/app/store
           name: configuration
-        # - mountPath: /dev/ttyACM0
-        #   name: zwave
+        - mountPath: /dev/ttyACM0
+          name: zwave
         securityContext:
           privileged: true
       volumes:
       - name: configuration
         persistentVolumeClaim:
             claimName: zwavejs2mqtt-india-pvc
+      - name: zwave
+        hostPath:
+          path: /dev/ttyACM0
       nodeSelector:
         workload: india
-#        hostPath:
-#          path: /tmp/zwavejs2mqtt
-#          type: DirectoryOrCreate
-      # - name: zwave
-      #   hostPath:
-      #     path: /dev/ttyACM0
 ---
 apiVersion: apps/v1
 kind: Deployment
