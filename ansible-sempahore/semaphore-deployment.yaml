@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: semaphore
+  name: semaphore
+  namespace: semaphore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: semaphore
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: semaphore
+    spec:
+      containers:
+        - env:
+            - name: SEMAPHORE_ADMIN
+              value: admin
+            - name: SEMAPHORE_ADMIN_EMAIL
+              value: admin@localhost
+            - name: SEMAPHORE_ADMIN_NAME
+              value: admin
+            - name: SEMAPHORE_ADMIN_PASSWORD
+              value: changeme
+            - name: SEMAPHORE_DB_DIALECT
+              value: bolt
+          image: semaphoreui/semaphore:v2.8.90
+          name: semaphore
+          ports:
+            - containerPort: 3000
+          resources: {}
+          volumeMounts:
+            - mountPath: /etc/semaphore
+              name: semaphore-core
+            - mountPath: /var/lib/semaphore
+              name: semaphore-lib
+      restartPolicy: Always
+      volumes:
+        - name: semaphore-core
+          persistentVolumeClaim:
+            claimName: semaphore-core-pvc
+        - name: semaphore-lib
+          persistentVolumeClaim:
+            claimName: semaphore-lib-pvc
