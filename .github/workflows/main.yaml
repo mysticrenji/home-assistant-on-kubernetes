@@ -59,9 +59,9 @@ jobs:
           context: ./home-automation/ble
           platforms: linux/amd64,linux/arm/v7,linux/arm/v8
           push: ${{ github.event_name != 'pull_request' }}
-          tags: latest 
+          tags: v1.0.0 
           # ${{ steps.bluez.outputs.tags }}
-          labels: latest 
+          # labels: latest 
           # ${{ steps.bluez.outputs.labels }}
           registry: ghcr.io
           username: ${{ github.repository_owner }}
