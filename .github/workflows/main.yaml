@@ -66,8 +66,8 @@ jobs:
             GitCommit=${{ github.sha }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ghcr.io/${{ env.REPO_OWNER }}/bluez-service:${{ github.sha }}
-            ghcr.io/${{ env.REPO_OWNER }}/bluez-service:${{ env.TAG }}
+            # ghcr.io/${{ env.REPO_OWNER }}/bluez-service:${{ github.sha }}
+            # ghcr.io/${{ env.REPO_OWNER }}/bluez-service:${{ env.TAG }}
             ghcr.io/${{ env.REPO_OWNER }}/bluez-service:latest
           # ${{ steps.bluez.outputs.tags }}
           # labels: latest 
