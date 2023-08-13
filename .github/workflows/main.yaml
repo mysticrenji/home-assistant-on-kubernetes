@@ -55,7 +55,7 @@ jobs:
           platforms: linux/amd64,linux/arm/v7,linux/arm/v8
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.bluez.outputs.tags }}
-          labels: ${{ steps.bluez.outputs.labels }}
+          labels: latest # ${{ steps.bluez.outputs.labels }}
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
