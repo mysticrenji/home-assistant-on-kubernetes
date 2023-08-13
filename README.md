@@ -1,6 +1,10 @@
 # Home-Assistant on K3s Cluster
 Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64)
 
+Complete walkthrough on the setup is posted on Medium
+-  [Part 1](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-i-e66fd24ab8f1)
+-  [Part 2](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-ii-60eb46a73c61)
+
 ## Architecture
 ![Architecture](./images/Home%20Automation.png)
 
