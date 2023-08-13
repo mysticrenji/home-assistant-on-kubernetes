@@ -1,4 +1,5 @@
 FROM debian:11-slim
+LABEL org.opencontainers.image.source https://github.com/mysticrenji/home-assistant-on-kubernetes
 
 # install bluez related packages
 RUN apt-get update && apt-get install -y \
