@@ -15,7 +15,7 @@ on:
 
 jobs:
   build:
-    runs-on: actuated
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
