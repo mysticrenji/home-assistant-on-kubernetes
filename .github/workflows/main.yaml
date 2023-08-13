@@ -60,7 +60,7 @@ jobs:
         with:
           # outputs: "type=registry,push=true"
           # provenance: false
-          push: true
+          # push: true
           context: ./home-automation/ble
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
