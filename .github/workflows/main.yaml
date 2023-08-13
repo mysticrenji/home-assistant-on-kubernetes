@@ -1,24 +1,16 @@
-name: Build
-
-# Controls when the workflow will run
+name: Docker Builds
 on:
-  workflow_dispatch
   push:
     branches:
-      - 'main'
+      - main
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
+
   pull_request:
     branches:
-      - 'main'
-      
-
-# permissions are needed if pushing to ghcr.io
-permissions:
-  contents: read
-  packages: write
-
-
+      - main
+    tags:
+      - "v*.*.*"
 jobs:
   build:
     runs-on: ubuntu-latest
