@@ -61,12 +61,12 @@ jobs:
           provenance: false
           context: ./home-automation/ble
           platforms: linux/amd64,linux/arm/v7,linux/arm64
-          build-args: |
-            Version=${{  env.TAG }}
-            GitCommit=${{ github.sha }}
+          # build-args: |
+          #   Version=${{  env.TAG }}
+          #   GitCommit=${{ github.sha }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-              ghcr.io/${{ env.REPO_OWNER }}/bluez-service:latest
+              ghcr.io/mysticrenji}/bluez-service:latest
           # ghcr.io/${{ env.REPO_OWNER }}/bluez-service:${{ github.sha }}
           # ghcr.io/${{ env.REPO_OWNER }}/bluez-service:${{ env.TAG }}
           # ${{ steps.bluez.outputs.tags }}
