@@ -28,7 +28,7 @@ jobs:
 
       - name: Get TAG
         id: get_tag
-        run: echo TAG=${GITHUB_REF#refs/tags/} >> $GITHUB_ENV
+        run: echo TAG=${GITHUB_REF##*/} >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         id: buildx
