@@ -1,16 +1,14 @@
-name: Docker Builds
+name: Docker Build for Bluez Service
 on:
   push:
     branches:
       - main
-      - dev
     tags:
       - "v*.*.*"
 
   pull_request:
     branches:
       - main
-      - dev
     tags:
       - "v*.*.*"
 
@@ -35,23 +33,6 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v2
-
-      # - name: Docker meta
-      #   id: bluez # you'll use this in the next step
-      #   uses: docker/metadata-action@v3
-      #   with:
-      #     # list of Docker images to use as base name for tags
-      #     images: |
-      #            ghcr.io/mysticrenji/bluez-service
-      #     # Docker tags based on the following events/attributes
-      #     tags: |
-      #       type=schedule
-      #       type=ref,event=branch
-      #       type=ref,event=pr
-      #       type=semver,pattern={{version}}
-      #       type=semver,pattern={{major}}.{{minor}}
-      #       type=semver,pattern={{major}}
-      #       type=sha
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -63,9 +44,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          # outputs: "type=registry,push=true"
-          # provenance: false
-          # push: true
           context: ./home-automation/ble
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
