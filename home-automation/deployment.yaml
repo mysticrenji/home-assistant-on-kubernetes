@@ -42,7 +42,7 @@ spec:
         securityContext:
           privileged: true
       - name: home-assistant
-        image: homeassistant/home-assistant:2023.10
+        image: homeassistant/home-assistant:2024.5.0
         resources:
           requests:
             memory: "256Mi"
@@ -201,46 +201,4 @@ spec:
   - name: mqtt1
     protocol: TCP
     port: 9001
-    targetPort: 9001        
-# ---
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: bluez
-#   namespace: home-assistant
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: bluez
-#   template:
-#     metadata:
-#       labels:
-#         app: bluez
-#     spec:
-#       containers:
-#       - name: bluez
-#         image: ghcr.io/mysticrenji/bluez-service:v1.0.0
-#         securityContext:
-#           capabilities:
-#             add:
-#               - NET_ADMIN
-#         ports:
-#         - containerPort: 3000
-#       hostNetwork: true
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   namespace: home-assistant
-#   name: bluez-service
-# spec:
-#   selector:
-#     app: bluez-service
-#   type: NodePort
-#   ports:
-#   - name: http
-#     protocol: TCP
-#     port: 3000
-#     targetPort: 3000
-#     nodePort: 30095
+    targetPort: 9001 
