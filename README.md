@@ -1,7 +1,9 @@
 # Home-Assistant on K3s Cluster
+[![Docker Build for Bluez Service](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/main.yaml)
+
 Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64)
 
-Complete walkthrough on the setup is posted on Medium
+A complete walkthrough on the setup is posted on Medium
 -  [Part 1](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-i-e66fd24ab8f1)
 -  [Part 2](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-ii-60eb46a73c61)
 
