@@ -84,4 +84,12 @@ curl -fsSL https://tailscale.com/install.sh | sh
 TOKEN="get token from the control server"
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.26.3+k3s1" K3S_URL=http://[ipfromtailscale]:6443 K3S_TOKEN=$TOKEN sh -s - --snapshotter=native
 ```
+## Star History
 
+<a href="https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date" />
+ </picture>
+</a>
