@@ -29,7 +29,7 @@ spec:
               value: changeme
             - name: SEMAPHORE_DB_DIALECT
               value: bolt
-          image: semaphoreui/semaphore:v2.8.90
+          image: semaphoreui/semaphore:v2.10.2
           name: semaphore
           ports:
             - containerPort: 3000
