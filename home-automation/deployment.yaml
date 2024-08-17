@@ -42,7 +42,7 @@ spec:
         securityContext:
           privileged: true
       - name: home-assistant
-        image: homeassistant/home-assistant:2024.8.1
+        image: homeassistant/home-assistant:2024.8.2
         resources:
           requests:
             memory: "256Mi"
