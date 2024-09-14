@@ -1,0 +1,74 @@
+name: CI Workflow
+
+# Trigger the workflow on schedule (nightly at 12:00) and manually on the main branch
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every day at 12:00 AM (UTC)
+  workflow_dispatch:     # Allows manual trigger
+  push:
+    branches:
+      - main
+
+jobs:
+  setup-kind:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Install necessary packages (curl, kubectl, kind)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl bash
+          # Download and install kind
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+
+      - name: Create Kind Cluster
+        run: kind create cluster --wait 5m
+
+      - name: Setup kubeconfig
+        run: |
+          kind get kubeconfig > $GITHUB_WORKSPACE/kubeconfig
+        env:
+          KUBECONFIG: $GITHUB_WORKSPACE/kubeconfig
+
+      - name: Verify Kubernetes Cluster
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+  test_application:
+    needs: setup-kind
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set kubeconfig
+        run: |
+          echo "$KUBECONFIG" > kubeconfig
+        env:
+          KUBECONFIG: $GITHUB_WORKSPACE/kubeconfig
+
+      - name: Apply Kubernetes Manifests
+        run: |
+          kubectl apply -f ./tests/nginx.yaml
+          kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
+          kubectl get pods
+
+  cleanup:
+    needs: test_application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Kind Cluster
+        run: kind delete cluster
