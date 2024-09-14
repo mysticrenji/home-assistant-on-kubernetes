@@ -51,5 +51,4 @@ jobs:
         run: |
           kubectl apply -f ./tests/nginx.yaml
           kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
-          kubectl logs -n ci-test $(kubectl get pods -n ci-test -l app=nginx -o jsonpath='{.items[0].metadata.name}')
-
+          kubectl logs -n ci-test nginx-pod
