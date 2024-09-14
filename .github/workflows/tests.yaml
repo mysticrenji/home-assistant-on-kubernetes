@@ -51,5 +51,3 @@ jobs:
         run: |
           kubectl apply -f ./tests/nginx.yaml
           kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
-          kubectl logs -n ci-test pod/nginx-pod
-
