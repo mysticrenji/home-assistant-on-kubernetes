@@ -1,4 +1,4 @@
-name: CI Workflow
+name: Kubernetes Test
 
 # Trigger the workflow on schedule (nightly at 12:00) and manually on the main branch
 on:
@@ -46,29 +46,10 @@ jobs:
         run: |
           kubectl cluster-info
           kubectl get nodes
-
-  test_application:
-    needs: setup-kind
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set kubeconfig
-        run: |
-          echo "$KUBECONFIG" > kubeconfig
-        env:
-          KUBECONFIG: $GITHUB_WORKSPACE/kubeconfig
-
+          
       - name: Apply Kubernetes Manifests
         run: |
           kubectl apply -f ./tests/nginx.yaml
           kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
-          kubectl get pods
+          kubectl logs -n ci-test $(kubectl get pods -n ci-test -l app=nginx -o jsonpath='{.items[0].metadata.name}')
 
-  cleanup:
-    needs: test_application
-    runs-on: ubuntu-latest
-    steps:
-      - name: Delete Kind Cluster
-        run: kind delete cluster
