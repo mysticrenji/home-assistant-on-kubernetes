@@ -55,7 +55,7 @@ jobs:
           kubectl apply -f ./home-automation/clean_install/
           for i in {1..18}; do
             POD_NAME=$(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}')
-            kubectl describe -n ha-test $POD_NAME
+            kubectl describe -n ha-test pod $POD_NAME
             sleep 10;
           done
           exit 0          
