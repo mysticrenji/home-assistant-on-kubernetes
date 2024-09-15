@@ -53,7 +53,7 @@ jobs:
       - name: Apply Kubernetes Manifests
         run: |
           kubectl apply -f ./home-automation/clean_install/
-          for i in {1..18}; do
-            kubectl logs -n ha-test $(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}') -c ha-test;
+          for i in {1..10}; do
+            kubectl logs -n ha-test $(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}') -c ha-test | tee pod_logs.txt;
             sleep 10;
           done          
