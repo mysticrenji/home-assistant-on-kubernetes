@@ -37,10 +37,10 @@ spec:
         app: ha-test
     spec:
       containers:
-      - name: bluez
-        image: ghcr.io/mysticrenji/bluez-service:v1
-        securityContext:
-          privileged: true
+      # - name: bluez
+      #   image: ghcr.io/mysticrenji/bluez-service:v1
+      #   securityContext:
+      #     privileged: true
       - name: ha-test
         image: homeassistant/home-assistant:2024.9.1
 #        resources:
@@ -69,8 +69,8 @@ spec:
           #     - NET_RAW
           #     - SYS_ADMIN
       hostNetwork: true
-      nodeSelector:
-        workload: india
+      # nodeSelector:
+      #   workload: india
       volumes:
       - name: config
         persistentVolumeClaim:
