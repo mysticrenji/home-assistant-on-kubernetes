@@ -2,15 +2,15 @@
 apiVersion: v1
 kind: Namespace
 metadata:   
-  name: ha-india
+  name: ha-test
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ha-india-pvc
+  name: ha-test-pvc
   labels:
-    app: ha-india
-  namespace: ha-india
+    app: ha-test
+  namespace: ha-test
 spec:
   accessModes:
   - ReadWriteOnce
@@ -24,7 +24,7 @@ metadata:
   name: zwavejs2mqtt-india-pvc
   labels:
     app: zwavejs2mqtt
-  namespace: ha-india
+  namespace: ha-test
 spec:
   accessModes:
   - ReadWriteOnce
@@ -39,7 +39,7 @@ metadata:
   name: bluez-pvc
   labels:
     app: bluez
-  namespace: ha-india
+  namespace: ha-test
 spec:
   accessModes:
   - ReadWriteOnce

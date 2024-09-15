@@ -1,8 +1,8 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: ha-india-configmap
-  namespace: ha-india
+  name: ha-test-configmap
+  namespace: ha-test
 data:
   known_devices.yaml: |
   automations.yaml: |
