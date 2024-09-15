@@ -2,16 +2,16 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ha-india
+  name: ha-test
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ha-india
-  name: ha-india
+  namespace: ha-test
+  name: ha-test
 spec:
   selector:
-    app: ha-india
+    app: ha-test
   type: ClusterIP
   ports:
   - name: http
@@ -22,27 +22,27 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ha-india
-  name: ha-india
+  namespace: ha-test
+  name: ha-test
   labels:
-    app: ha-india
+    app: ha-test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ha-india
+      app: ha-test
   template:
     metadata:
       labels:
-        app: ha-india
+        app: ha-test
     spec:
       containers:
-      - name: bluez
-        image: ghcr.io/mysticrenji/bluez-service:v1.0.0
-        securityContext:
-          privileged: true
-      - name: ha-india
-        image: ghcr.io/mysticrenji/homeassistant-arm64:2023.3.0
+      # - name: bluez
+      #   image: ghcr.io/mysticrenji/bluez-service:v1
+      #   securityContext:
+      #     privileged: true
+      - name: ha-test
+        image: homeassistant/home-assistant:2024.9.1
 #        resources:
 #          requests:
 #            memory: "1Gi"
@@ -55,12 +55,12 @@ spec:
           name: config
         - mountPath: /config/configuration.yaml
           subPath: configuration.yaml
-          name: configmap-file-india
+          name:  ha-test-configmap
         - mountPath: /config/automations.yaml
           subPath: automations.yaml
-          name: configmap-file-india
-        - mountPath: /dev/ttyUSB1
-          name: zigbee
+          name:  ha-test-configmap
+        # - mountPath: /dev/ttyUSB1
+        #   name: zigbee
         securityContext:
           privileged: true
           # capabilities:
@@ -69,23 +69,23 @@ spec:
           #     - NET_RAW
           #     - SYS_ADMIN
       hostNetwork: true
-      nodeSelector:
-        workload: india
+      # nodeSelector:
+      #   workload: india
       volumes:
       - name: config
         persistentVolumeClaim:
-          claimName: ha-india-pvc
-      - name: configmap-file-india
+          claimName: ha-test-pvc
+      - name:  ha-test-configmap
         configMap:
-          name: ha-india-configmap
-      - name: zigbee
-        hostPath:
-          path: /dev/ttyACM0
+          name: ha-test-configmap
+      # - name: zigbee
+      #   hostPath:
+      #     path: /dev/ttyACM0
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ha-india
+  namespace: ha-test
   name: zwavejs2mqtt
 spec:
   selector:
@@ -104,7 +104,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ha-india
+  namespace: ha-test
   name: zwavejs2mqtt-india
   labels:
     app: zwavejs2mqtt
@@ -128,25 +128,25 @@ spec:
         volumeMounts:
         - mountPath: /usr/src/app/store
           name: configuration
-        - mountPath: /dev/ttyACM0
-          name: zwave
+        # - mountPath: /dev/ttyACM0
+        #   name: zwave
         securityContext:
           privileged: true
       volumes:
       - name: configuration
         persistentVolumeClaim:
             claimName: zwavejs2mqtt-india-pvc
-      - name: zwave
-        hostPath:
-          path: /dev/ttyACM0
-      nodeSelector:
-        workload: india
+      # - name: zwave
+      #   hostPath:
+      #     path: /dev/ttyACM0
+      # nodeSelector:
+      #   workload: india
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mosquitto
-  namespace: ha-india
+  namespace: ha-test
 spec:
   replicas: 1
   selector:
@@ -171,7 +171,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ha-india
+  namespace: ha-test
   name: mosquitto-service
 spec:
   selector:

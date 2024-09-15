@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   setup-kind:
@@ -49,5 +52,10 @@ jobs:
           
       - name: Apply Kubernetes Manifests
         run: |
-          kubectl apply -f ./tests/nginx.yaml
-          # kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
+          kubectl apply -f ./home-automation/clean_install/
+          sleep 5
+          #POD_NAME=$(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}')
+          for i in {1..18}; do
+            kubectl get pods -n ha-test -o wide
+            sleep 10;
+          done
