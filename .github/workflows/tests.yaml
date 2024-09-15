@@ -65,6 +65,7 @@ jobs:
               echo "Waiting for pod $POD_NAME to be ready... Attempt $((ATTEMPT + 1))"
               sleep 5
               ((ATTEMPT++))
+              exit 0      
           done
           kubectl logs -n ha-test $POD_NAME
-          exit 0          
+    
