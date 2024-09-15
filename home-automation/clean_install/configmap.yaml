@@ -1,3 +1,9 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ha-test
+---
 kind: ConfigMap
 apiVersion: v1
 metadata:
