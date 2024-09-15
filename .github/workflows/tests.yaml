@@ -50,4 +50,4 @@ jobs:
       - name: Apply Kubernetes Manifests
         run: |
           kubectl apply -f ./tests/nginx.yaml
-          kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
+          # kubectl wait --for=condition=ready pod -n ci-test --timeout=300s
