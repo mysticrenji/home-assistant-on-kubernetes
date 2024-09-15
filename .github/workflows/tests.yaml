@@ -52,20 +52,11 @@ jobs:
           
       - name: Apply Kubernetes Manifests
         run: |
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
           kubectl apply -f ./home-automation/clean_install/
-          sleep 10
-          POD_NAME=$(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}')
-          while [[ "$(kubectl get pod $POD_NAME -o jsonpath='{.status.phase}')" != "Running" ]]; do
-              if [[ $ATTEMPT -ge $MAX_ATTEMPTS ]]; then
-                  echo "Pod $POD_NAME did not become ready within the expected time."
-                  exit 1
-              fi
-              echo "Waiting for pod $POD_NAME to be ready... Attempt $((ATTEMPT + 1))"
-              sleep 5
-              ((ATTEMPT++))
-              exit 0      
+          sleep 5
+          #POD_NAME=$(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}')
+          for i in {1..18}; do
+            kubectl get all -n ha-test -o wide
+            sleep 10;
           done
-          kubectl logs -n ha-test $POD_NAME
     
