@@ -1,0 +1,49 @@
+# -*- mode: yaml -*-
+# This example configuration for provides basic automations to get started with gitStream.
+# View the gitStream quickstart for more examples: https://docs.gitstream.cm/examples/
+manifest:
+  version: 1.0
+
+#triggers:
+#  exclude:
+#    branch:
+#     - r/(Dependabot|Renovate)/
+
+automations:
+  welcome_newcomer:
+    if: 
+      - {{ repo.contributors | isFirstCommit(branch.author) }}
+    run: 
+      - action: add-comment@v1
+        args:
+          comment: Thanks for the PR {{branch.author}}!
+
+  # Add a label that indicates how many minutes it will take to review the PR.
+  estimated_time_to_review:
+    on:
+      - commit
+    if:
+      - true
+    run:
+      - action: add-label@v1
+        args:
+          label: "{{ calc.etr }} min review"
+          color: {{ colors.red if (calc.etr >= 20) else ( colors.yellow if (calc.etr >= 5) else colors.green ) }}
+  # Post a comment that lists the best experts for the files that were modified.
+  explain_code_experts:
+    if:
+      - true
+    run:
+      - action: explain-code-experts@v1
+        args:
+          gt: 10
+  safe_changes:
+    if:
+      - {{ is.renovate }}
+    run: 
+      - action: add-label@v1
+        args:
+          label: 'safe-changes'
+      - action: approve@v1
+is:
+  renovate: {{ (branch.name | includes(term="renovate")) and (branch.author | includes(term="renovate")) }}
