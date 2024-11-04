@@ -45,5 +45,9 @@ automations:
         args:
           label: 'safe-changes'
       - action: approve@v1
+      - action: merge@v1
+        args:
+          wait_for_all_checks: true
+          rebase_on_merge: true
 is:
   renovate: {{ (branch.name | includes(term="renovate")) and (branch.author | includes(term="renovate")) }}
