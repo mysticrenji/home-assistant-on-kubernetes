@@ -49,6 +49,5 @@ automations:
         args:
           wait_for_all_checks: true
           rebase_on_merge: true
-      - action: close@v1
 is:
   renovate: {{ (branch.name | includes(term="renovate")) and (branch.author | includes(term="renovate")) }}
