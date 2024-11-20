@@ -165,8 +165,8 @@ spec:
         ports:
         - containerPort: 1883
         - containerPort: 9001
-      nodeSelector:
-        workload: india
+      #nodeSelector:
+      #  workload: india
 ---
 apiVersion: v1
 kind: Service
