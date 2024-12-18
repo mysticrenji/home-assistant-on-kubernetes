@@ -18,6 +18,10 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8123
+  - name: ws
+    protocol: TCP
+    port: 5580       # Matter Server Port
+    targetPort: 5580 # Matter Server container port
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -41,6 +45,21 @@ spec:
         image: ghcr.io/mysticrenji/bluez-service:v1.0.0
         securityContext:
           privileged: true
+      - name: matter-server
+        image: ghcr.io/home-assistant-libs/python-matter-server:stable
+        securityContext:
+          # Needed for Bluetooth via dbus
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        imagePullPolicy: Always
+        args:
+          - --storage-path=/data
+          - --paa-root-cert-dir=/data/credentials
+          - --bluetooth-adapter=0
+        ports:
+        - containerPort: 5580 # Expose container port
       - name: home-assistant
         image: homeassistant/home-assistant:2024.12.4
         resources:
@@ -61,11 +80,13 @@ spec:
           name: configmap-file
         - mountPath: /media
           name: media-volume          
-        # - mountPath: /run/dbus
-        #   name: d-bus
+        - mountPath: /run/dbus
+          name: d-bus
         #   readOnly: true
         - mountPath: /dev/ttyUSB1
           name: zigbee
+        - name: data-volume
+          mountPath: /data
         #- mountPath: /dev/video0
         #  name: cam
         securityContext:
@@ -89,9 +110,12 @@ spec:
       #  hostPath:
       #    path: /tmp/home-assistant
       #    type: DirectoryOrCreate
-      # - name: d-bus
-      #   hostPath:
-      #     path: /run/dbus
+      - name: d-bus
+        hostPath:
+          path: /run/dbus
+      - name: data-volume
+        hostPath:
+          path: /tmp/media
       - name: zigbee
         hostPath:
           path: /dev/ttyACM0
