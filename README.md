@@ -20,7 +20,7 @@ To make this setup accessible from outside the network, a Cloudflare tunnel serv
 
 ## Install K3s on Nvidia Jetson ARM64 utlizing Containerd Runtime
 ```
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.26.3+k3s1" sh -s -
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.31.4+k3s1" sh -s -
 ```
 
 ## Install Kubernetes Device Plugin for Nvidia
@@ -83,8 +83,16 @@ curl -fsSL https://tailscale.com/install.sh | sh
 2. In the worker nodes, use the below code snippet
 ```
 TOKEN="get token from the control server"
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.26.3+k3s1" K3S_URL=http://[ipfromtailscale]:6443 K3S_TOKEN=$TOKEN sh -s - --snapshotter=native
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.31.4+k3s1" K3S_URL=http://[ipfromtailscale]:6443 K3S_TOKEN=$TOKEN sh -s - --snapshotter=native
 ```
+
+## FAQ
+1. How to enable HACS Addon on Home Assistant?
+   You need to manualy install HACS on the Home assistant. This can be done by spinning up a bash shell inside the Home Assistant Pod and running the below command. Once installed, restart the deployment to see the HACS enabled on the left-hand side panel.
+   ```
+   wget -O - https://get.hacs.xyz | bash -
+   ```
+   
 ## Star History
 
 <a href="https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date">
