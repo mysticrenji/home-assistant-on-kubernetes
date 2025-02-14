@@ -95,10 +95,4 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.
    
 ## Star History
 
-<a href="https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date" />
- </picture>
-</a>
+[![Star History Chart](https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date)](https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date)
