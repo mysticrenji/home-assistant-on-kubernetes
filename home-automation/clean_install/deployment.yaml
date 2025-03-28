@@ -121,7 +121,7 @@ spec:
       # restartPolicy: OnFailure 
       containers:
       - name: zwavejs2mqtt
-        image: zwavejs/zwavejs2mqtt:10.1.2
+        image: zwavejs/zwavejs2mqtt:10.1.3
         ports:
         - containerPort: 8091
         - containerPort: 3000
