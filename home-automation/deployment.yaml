@@ -61,7 +61,7 @@ spec:
         ports:
         - containerPort: 5580 # Expose container port
       - name: home-assistant
-        image: homeassistant/home-assistant:2025.4.3
+        image: homeassistant/home-assistant:2025.4.4
         resources:
           requests:
             memory: "256Mi"
