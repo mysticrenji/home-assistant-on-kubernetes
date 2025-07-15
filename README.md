@@ -88,10 +88,10 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.
 
 ## FAQ
 1. How to enable HACS Addon on Home Assistant?
-   You need to manualy install HACS on the Home assistant. This can be done by spinning up a bash shell inside the Home Assistant Pod and running the below command. Once installed, restart the deployment to see the HACS enabled on the left-hand side panel.
-   ```
-   wget -O - https://get.hacs.xyz | bash -
-   ```
+You need to manualy install HACS on the Home assistant. This can be done by spinning up a bash shell inside the Home Assistant Pod and running the below command. Once installed, restart the deployment to see the HACS enabled on the left-hand side panel.
+```
+wget -O - https://get.hacs.xyz | bash -
+```
    
 ## Star History
 
