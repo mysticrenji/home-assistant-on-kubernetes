@@ -162,7 +162,7 @@ spec:
     spec:
       containers:
       - name: zwavejs2mqtt
-        image: zwavejs/zwavejs2mqtt:10.10.0
+        image: zwavejs/zwavejs2mqtt:10.11.0
         ports:
         - containerPort: 8091
         - containerPort: 3000
