@@ -55,8 +55,6 @@ In this setup, we have:
   - Cloudflare name server integration
   - Custom domain mapping for easy access
 
-This architecture demonstrates how containerization technology enables running a complex home automation setup on a single device while maintaining security and accessibility.
-
 ## 3. Installation Guide
 
 ### 3.1. K3s Installation
