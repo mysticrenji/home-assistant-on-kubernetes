@@ -1,59 +1,71 @@
 # Home-Assistant on K3s Cluster
+
 [![Docker Build for Bluez Service](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/main.yaml)
 [![Nightly Build test for Home Assistant](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/tests.yaml)
 
-Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64)
+## Detailed Setup Guide
+For a complete walkthrough of this setup, please refer to my Medium article series:
+- [Part 1: Getting Started with Home Assistant on Kubernetes](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-i-e66fd24ab8f1)
+- [Part 2: Configuration and Integrations](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-ii-60eb46a73c61)
+- [Part 3: Integration with Generative AI](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-iii-9be6f1f2a20e)
 
-A complete walkthrough on the setup is posted on Medium
--  [Part 1](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-i-e66fd24ab8f1)
--  [Part 2](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-ii-60eb46a73c61)
--  [Part 3](https://renjithvr11.medium.com/running-your-home-assistant-on-kubernetes-part-iii-9be6f1f2a20e)
+## Table of Contents
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Installation Guide](#installation-guide)
+   - [3.1. K3s Installation](#31-k3s-installation)
+   - [3.2. Nvidia Setup](#32-nvidia-setup)
+   - [3.3. Cloudflare Setup](#33-cloudflare-setup)
+   - [3.4. MetalLB Installation](#34-metallb-installation)
+   - [3.5. Cert Manager Installation](#35-cert-manager-installation)
+4. [Multi-Node Setup](#multi-node-setup)
+5. [FAQ](#faq)
+6. [Project Statistics](#project-statistics)
 
-## Architecture
+## 1. Overview
+Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64). This project demonstrates running Home Assistant in a Kubernetes environment with various integrations.
+
+## 2. Architecture
 ![Architecture](./images/Home%20Automation.png)
 
+This setup includes:
+- K3s cluster running on ARM64 NVidia Jetson Nano
+- Home-assistant pod using official container image
+- Bluez service pod for Bluetooth interface
+- Zigbee coordinator service for zigbee hardware
+- Cloudflare tunnel service for external access
 
-In this setup, a K3s cluster is being run on a single ARM64 NVidia Jetson Nano device, showcasing the power of containerization technology. One of the pods in this cluster is home-assistant, utilizing the official container image. There are other pods running in the same namespace, such as bluez service, which interfaces with Bluetooth hardware, and a zigbee coordinator service, which interfaces with zigbee hardware, both connected to the Nvidia Jetson using USB ports.
+## 3. Installation Guide
 
-The bluez service pod is capable of fetching messages sent by a Plant soil sensor via Bluetooth Low Energy (BLE). Additionally, the zigbee device sensor data is sent to the zigbee coordinator. These devices are easily mapped to Homeassistant using built-in add-ons that are both available and supported.
-
-To make this setup accessible from outside the network, a Cloudflare tunnel service is running inside the cluster. This allows Home-assistant to be reachable from the outside world. To ensure proper name resolution, Cloudflare name server details from Google Domain Servers are injected into the system, making it easy to access via domain names. Overall, this is a powerful and well-connected system, showcasing the potential of containerization technology for running complex setups on single devices.
-
-## Install K3s on Nvidia Jetson ARM64 utlizing Containerd Runtime
-```
+### 3.1. K3s Installation
+```bash
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.31.4+k3s1" sh -s -
 ```
 
-## Install Kubernetes Device Plugin for Nvidia
-
-For tapping GPU capabilities in K3s cluster, it needs to follow a few steps
-
-[K3s Nvidia Setup](https://docs.k3s.io/advanced#nvidia-container-runtime-support)
-
-```
+### 3.2. Nvidia Setup
+Follow [K3s Nvidia Setup](https://docs.k3s.io/advanced#nvidia-container-runtime-support) documentation and run:
+```bash
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.10.0/nvidia-device-plugin.yml
 ```
 
-## Install Cloudflare Daemon for Secure Public Access
-
-The below will create a deployment with running cloudflare daemon to connect t to cloudflare platform, allowing access to the your internally hosted pods
-
-```
+### 3.3. Cloudflare Setup
+Deploy Cloudflare daemon for secure public access:
+```bash
 kubectl create -f ./cloudflare-daemon/deployment.yaml
 ```
 
-## Installing MetalLB 
-```
-Instll MetalLB
---------------
+### 3.4. MetalLB Installation
+```bash
+# Install MetalLB
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml
 
-# Create a secret for encrypted speaker communications
-$ kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+# Create secret for encrypted speaker communications
+kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+```
 
-Config for metallb
-------------------
+MetalLB Configuration:
+```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -66,34 +78,34 @@ data:
       protocol: layer2
       addresses:
       - 192.168.2.128/25
-
 ```
 
-## Install Cert Manager 
-```
+### 3.5. Cert Manager Installation
+```bash
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set installCRDs=true
 ```
-## Add Kubernetes Worker nodes from different network(different location)
 
-1. First we need to make sure that both the control plane and worker nodes are able to communicate with each other. To solve this issue, I have made use of tailscale VPN which will install agents on the ARM64 devices. Tailscale features free connectivity upto 3 nodes
-```
+## 4. Multi-Node Setup
+1. Install Tailscale VPN on all nodes:
+```bash
 curl -fsSL https://tailscale.com/install.sh | sh
 ```
-2. In the worker nodes, use the below code snippet
-```
+
+2. On worker nodes, run:
+```bash
 TOKEN="get token from the control server"
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.31.4+k3s1" K3S_URL=http://[ipfromtailscale]:6443 K3S_TOKEN=$TOKEN sh -s - --snapshotter=native
 ```
 
-## FAQ
-1. How to enable HACS Addon on Home Assistant?
-You need to manualy install HACS on the Home assistant. This can be done by spinning up a bash shell inside the Home Assistant Pod and running the below command. Once installed, restart the deployment to see the HACS enabled on the left-hand side panel.
-```
+## 5. FAQ
+**Q: How to enable HACS Addon on Home Assistant?**  
+A: Install HACS manually by running this command in the Home Assistant Pod:
+```bash
 wget -O - https://get.hacs.xyz | bash -
 ```
-   
-## Star History
+Then restart the deployment to see HACS in the left-hand side panel.
 
+## 6. Project Statistics
 [![Star History Chart](https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date)](https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date)
