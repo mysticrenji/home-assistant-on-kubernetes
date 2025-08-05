@@ -28,12 +28,34 @@ Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64). T
 ## 2. Architecture
 ![Architecture](./images/Home%20Automation.png)
 
-This setup includes:
-- K3s cluster running on ARM64 NVidia Jetson Nano
+In this setup, we have:
+
+### Core Infrastructure
+- K3s cluster running on a single ARM64 NVidia Jetson Nano device
 - Home-assistant pod using official container image
-- Bluez service pod for Bluetooth interface
-- Zigbee coordinator service for zigbee hardware
-- Cloudflare tunnel service for external access
+- All services running in the same namespace for simplified management
+
+### Hardware Integration Services
+1. **Bluetooth Integration**
+   - Bluez service pod for Bluetooth interface
+   - Interfaces with Plant soil sensor via BLE (Bluetooth Low Energy)
+   - Direct USB connection to Nvidia Jetson
+
+2. **Zigbee Integration**
+   - Zigbee coordinator service for zigbee hardware
+   - Connected via USB to Nvidia Jetson
+   - Handles communication with zigbee-based sensors
+   - Easy integration with Home Assistant using built-in add-ons
+
+### External Access Setup
+- Cloudflare tunnel service running inside the cluster
+- External access enabled through Cloudflare's secure tunnel
+- Domain resolution configured through:
+  - Google Domain Servers
+  - Cloudflare name server integration
+  - Custom domain mapping for easy access
+
+This architecture demonstrates how containerization technology enables running a complex home automation setup on a single device while maintaining security and accessibility.
 
 ## 3. Installation Guide
 
