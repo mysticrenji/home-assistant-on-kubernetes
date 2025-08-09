@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: cloudflared
-        image: cloudflare/cloudflared:2025.7.0-arm64
+        image: cloudflare/cloudflared:2025.8.0-arm64
         args:
         - tunnel
         # Points cloudflared to the config file, which configures what
