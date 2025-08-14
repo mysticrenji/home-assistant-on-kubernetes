@@ -5,7 +5,7 @@ on:
     branches:
       - add-map-followers
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+    - cron: '0 0 */3 * *'  # Runs every 3 days at midnight UTC
 
 jobs:
   build:
@@ -121,7 +121,7 @@ jobs:
             const url = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${markers}/auto/800x500?access_token=${MAP_API_KEY}`;
             try {
               const res = await axios.get(url, { responseType: "arraybuffer" });
-              fs.writeFileSync("followers-map.png", res.data);
+              fs.writeFileSync("./github/followers-map.png", res.data);
               console.log("Map generated: followers-map.png with", limited.length, "markers");
             } catch (e) {
               console.error("Error generating map:", e.message);
@@ -154,5 +154,5 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: "docs: update followers map"
-        file_pattern: "followers-map.png"
+        file_pattern: ".github/followers-map.png"
         commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
