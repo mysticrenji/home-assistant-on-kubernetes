@@ -1,0 +1,109 @@
+name: Generate Followers Map
+
+on:
+  push:
+    branches:
+      - add-map-followers
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for git-auto-commit-action
+
+    steps:
+    - uses: actions/checkout@v3
+      
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'  # Add caching for better performance
+        
+    - name: Install dependencies
+      run: |
+        npm init -y
+        npm install axios
+
+    - name: Generate followers map
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEOCODING_API_KEY: ${{ secrets.GEOCODING_API_KEY }}
+        MAP_API_KEY: ${{ secrets.MAP_API_KEY }}
+        REPO_OWNER: ${{ github.repository_owner }}
+        REPO_NAME: ${{ github.event.repository.name }}
+      run: |
+        node -e '
+          const axios = require("axios");
+          const fs = require("fs");
+
+          const GITHUB_TOKEN = "${{ secrets.GITHUB_TOKEN }}";
+          const GEOCODING_API_KEY = "${{ secrets.GEOCODING_API_KEY }}";
+          const MAP_API_KEY = "${{ secrets.MAP_API_KEY }}";
+          const REPO_OWNER = "${{ github.repository_owner }}";
+          const REPO_NAME = "${{ github.event.repository.name }}";
+
+          async function getFollowers() {
+            try {
+              const response = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/followers`, {
+                headers: { "Authorization": `token ${GITHUB_TOKEN}` }
+              });
+              return response.data;
+            } catch (error) {
+              console.error("Error fetching followers:", error.message);
+              return [];
+            }
+          }
+
+          async function getGeocode(location) {
+            if (!location) return null;
+            try {
+              const response = await axios.get(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${GEOCODING_API_KEY}`);
+              const { lat, lng } = response.data.results[0].geometry;
+              return { lat, lng };
+            } catch (error) {
+              console.error(`Error geocoding ${location}:`, error.message);
+              return null;
+            }
+          }
+
+          async function generateMap(coordinates) {
+            const markers = coordinates.map(coord => `pin-s(${coord.lng},${coord.lat})`).join(",");
+            const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${markers}/auto/600x400?access_token=${MAP_API_KEY}`;
+
+            try {
+              const response = await axios.get(mapUrl, { responseType: "arraybuffer" });
+              fs.writeFileSync("followers-map.png", response.data);
+              console.log("Map generated successfully.");
+            } catch (error) {
+              console.error("Error generating map:", error.message);
+            }
+          }
+
+          async function main() {
+            const followers = await getFollowers();
+            const locations = await Promise.all(
+              followers.map(async (follower) => {
+                const userResponse = await axios.get(follower.url, { headers: { "Authorization": `token ${GITHUB_TOKEN}` } });
+                return userResponse.data.location;
+              })
+            );
+
+            const coordinates = (await Promise.all(locations.map(getGeocode))).filter(Boolean);
+            if (coordinates.length > 0) {
+              await generateMap(coordinates);
+            } else {
+              console.log("No valid coordinates found to generate a map.");
+            }
+          }
+
+          main();
+        '
+
+    - name: Commit and push if changed
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "docs: update followers map"
+        file_pattern: "followers-map.png"
+        commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
