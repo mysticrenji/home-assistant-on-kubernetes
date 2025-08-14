@@ -131,4 +131,4 @@ Then restart the deployment to see HACS in the left-hand side panel.
 [![Star History Chart](https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date)](https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date)
 
 ### Stars World Map
-![Followers Map](./github/followers-map.png)
+![Followers Map](./followers-map.png)
