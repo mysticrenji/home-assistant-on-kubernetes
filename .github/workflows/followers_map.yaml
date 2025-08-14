@@ -19,12 +19,22 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'  # Add caching for better performance
-        
-    - name: Install dependencies
+
+    - name: Create package files
       run: |
-        npm init -y
-        npm install axios
+        echo '{"name":"followers-map","version":"1.0.0","private":true}' > package.json
+        npm install --package-lock-only axios
+        
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm install axios
 
     - name: Generate followers map
       env:
