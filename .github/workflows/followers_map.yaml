@@ -41,74 +41,113 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GEOCODING_API_KEY: ${{ secrets.GEOCODING_API_KEY }}
         MAP_API_KEY: ${{ secrets.MAP_API_KEY }}
-        REPO_OWNER: ${{ github.repository_owner }}
-        REPO_NAME: ${{ github.event.repository.name }}
+        REPO: ${{ github.repository }} # works on push and schedule
       run: |
         node -e '
           const axios = require("axios");
           const fs = require("fs");
 
-          const GITHUB_TOKEN = "${{ secrets.GITHUB_TOKEN }}";
-          const GEOCODING_API_KEY = "${{ secrets.GEOCODING_API_KEY }}";
-          const MAP_API_KEY = "${{ secrets.MAP_API_KEY }}";
-          const REPO_OWNER = "${{ github.repository_owner }}";
-          const REPO_NAME = "${{ github.event.repository.name }}";
+          const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+          const GEOCODING_API_KEY = process.env.GEOCODING_API_KEY;
+          const MAP_API_KEY = process.env.MAP_API_KEY;
+          const [REPO_OWNER, REPO_NAME] = process.env.REPO.split("/");
 
-          async function getFollowers() {
+          async function getStargazers(max = 300) {
+            const users = [];
+            let page = 1;
+            while (users.length < max) {
+              const res = await axios.get(
+                `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/stargazers`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3+json",
+                  },
+                  params: { per_page: 100, page },
+                }
+              );
+              if (!Array.isArray(res.data) || res.data.length === 0) break;
+              users.push(...res.data);
+              if (res.data.length < 100) break;
+              page += 1;
+            }
+            return users.slice(0, max);
+          }
+
+          async function getUserLocation(user) {
             try {
-              const response = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/followers`, {
-                headers: { "Authorization": `token ${GITHUB_TOKEN}` }
-              });
-              return response.data;
-            } catch (error) {
-              console.error("Error fetching followers:", error.message);
-              return [];
+              const res = await axios.get(
+                user.url || `https://api.github.com/users/${user.login}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3+json",
+                  },
+                }
+              );
+              return res.data && res.data.location ? res.data.location : null;
+            } catch (e) {
+              console.error("Error fetching user:", user.login, e.message);
+              return null;
             }
           }
 
+          const geocodeCache = new Map();
           async function getGeocode(location) {
             if (!location) return null;
+            if (geocodeCache.has(location)) return geocodeCache.get(location);
             try {
-              const response = await axios.get(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${GEOCODING_API_KEY}`);
-              const { lat, lng } = response.data.results[0].geometry;
-              return { lat, lng };
-            } catch (error) {
-              console.error(`Error geocoding ${location}:`, error.message);
+              const res = await axios.get(
+                `https://api.opencagedata.com/geocode/v1/json`,
+                { params: { q: location, key: GEOCODING_API_KEY, limit: 1 } }
+              );
+              const result = res.data && res.data.results && res.data.results[0];
+              const coords = result && result.geometry
+                ? { lat: result.geometry.lat, lng: result.geometry.lng }
+                : null;
+              geocodeCache.set(location, coords);
+              return coords;
+            } catch (e) {
+              console.error("Error geocoding:", location, e.message);
+              geocodeCache.set(location, null);
               return null;
             }
           }
 
           async function generateMap(coordinates) {
-            const markers = coordinates.map(coord => `pin-s(${coord.lng},${coord.lat})`).join(",");
-            const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${markers}/auto/600x400?access_token=${MAP_API_KEY}`;
-
+            // Limit markers to avoid URL length limits
+            const limited = coordinates.slice(0, 100);
+            const markers = limited.map(c => `pin-s(${c.lng},${c.lat})`).join(",");
+            const url = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${markers}/auto/800x500?access_token=${MAP_API_KEY}`;
             try {
-              const response = await axios.get(mapUrl, { responseType: "arraybuffer" });
-              fs.writeFileSync("followers-map.png", response.data);
-              console.log("Map generated successfully.");
-            } catch (error) {
-              console.error("Error generating map:", error.message);
+              const res = await axios.get(url, { responseType: "arraybuffer" });
+              fs.writeFileSync("followers-map.png", res.data);
+              console.log("Map generated: followers-map.png with", limited.length, "markers");
+            } catch (e) {
+              console.error("Error generating map:", e.message);
             }
           }
 
           async function main() {
-            const followers = await getFollowers();
-            const locations = await Promise.all(
-              followers.map(async (follower) => {
-                const userResponse = await axios.get(follower.url, { headers: { "Authorization": `token ${GITHUB_TOKEN}` } });
-                return userResponse.data.location;
-              })
-            );
-
-            const coordinates = (await Promise.all(locations.map(getGeocode))).filter(Boolean);
-            if (coordinates.length > 0) {
-              await generateMap(coordinates);
-            } else {
-              console.log("No valid coordinates found to generate a map.");
+            const users = await getStargazers();
+            if (users.length === 0) {
+              console.log("No stargazers found.");
+              return;
             }
+
+            const locationsRaw = await Promise.all(users.map(getUserLocation));
+            const uniqueLocations = [...new Set(locationsRaw.filter(Boolean))];
+
+            const coordinates = (await Promise.all(uniqueLocations.map(getGeocode))).filter(Boolean);
+            if (coordinates.length === 0) {
+              console.log("No valid coordinates to map.");
+              return;
+            }
+
+            await generateMap(coordinates);
           }
 
-          main();
+          main().catch(e => { console.error(e); process.exit(1); });
         '
 
     - name: Commit and push if changed
