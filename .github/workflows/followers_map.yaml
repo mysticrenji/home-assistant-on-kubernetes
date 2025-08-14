@@ -1,0 +1,155 @@
+name: Generate Followers Map
+
+on:
+  schedule:
+    - cron: '0 0 */3 * *'  # Runs every 3 days at midnight UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for git-auto-commit-action
+
+    steps:
+    - uses: actions/checkout@v3
+      
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Create package files
+      run: |
+        echo '{"name":"followers-map","version":"1.0.0","private":true}' > package.json
+        npm install --package-lock-only axios
+        
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm install axios
+
+    - name: Generate followers map
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEOCODING_API_KEY: ${{ secrets.GEOCODING_API_KEY }}
+        MAP_API_KEY: ${{ secrets.MAP_API_KEY }}
+        REPO: ${{ github.repository }} # works on push and schedule
+      run: |
+        node -e '
+          const axios = require("axios");
+          const fs = require("fs");
+
+          const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+          const GEOCODING_API_KEY = process.env.GEOCODING_API_KEY;
+          const MAP_API_KEY = process.env.MAP_API_KEY;
+          const [REPO_OWNER, REPO_NAME] = process.env.REPO.split("/");
+
+          async function getStargazers(max = 300) {
+            const users = [];
+            let page = 1;
+            while (users.length < max) {
+              const res = await axios.get(
+                `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/stargazers`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3+json",
+                  },
+                  params: { per_page: 100, page },
+                }
+              );
+              if (!Array.isArray(res.data) || res.data.length === 0) break;
+              users.push(...res.data);
+              if (res.data.length < 100) break;
+              page += 1;
+            }
+            return users.slice(0, max);
+          }
+
+          async function getUserLocation(user) {
+            try {
+              const res = await axios.get(
+                user.url || `https://api.github.com/users/${user.login}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3+json",
+                  },
+                }
+              );
+              return res.data && res.data.location ? res.data.location : null;
+            } catch (e) {
+              console.error("Error fetching user:", user.login, e.message);
+              return null;
+            }
+          }
+
+          const geocodeCache = new Map();
+          async function getGeocode(location) {
+            if (!location) return null;
+            if (geocodeCache.has(location)) return geocodeCache.get(location);
+            try {
+              const res = await axios.get(
+                `https://api.opencagedata.com/geocode/v1/json`,
+                { params: { q: location, key: GEOCODING_API_KEY, limit: 1 } }
+              );
+              const result = res.data && res.data.results && res.data.results[0];
+              const coords = result && result.geometry
+                ? { lat: result.geometry.lat, lng: result.geometry.lng }
+                : null;
+              geocodeCache.set(location, coords);
+              return coords;
+            } catch (e) {
+              console.error("Error geocoding:", location, e.message);
+              geocodeCache.set(location, null);
+              return null;
+            }
+          }
+
+          async function generateMap(coordinates) {
+            // Limit markers to avoid URL length limits
+            const limited = coordinates.slice(0, 100);
+            const markers = limited.map(c => `pin-s(${c.lng},${c.lat})`).join(",");
+            const url = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${markers}/auto/800x500?access_token=${MAP_API_KEY}`;
+            try {
+              const res = await axios.get(url, { responseType: "arraybuffer" });
+              fs.writeFileSync("followers-map.png", res.data);
+              console.log("Map generated: followers-map.png with", limited.length, "markers");
+            } catch (e) {
+              console.error("Error generating map:", e.message);
+            }
+          }
+
+          async function main() {
+            const users = await getStargazers();
+            if (users.length === 0) {
+              console.log("No stargazers found.");
+              return;
+            }
+
+            const locationsRaw = await Promise.all(users.map(getUserLocation));
+            const uniqueLocations = [...new Set(locationsRaw.filter(Boolean))];
+
+            const coordinates = (await Promise.all(uniqueLocations.map(getGeocode))).filter(Boolean);
+            if (coordinates.length === 0) {
+              console.log("No valid coordinates to map.");
+              return;
+            }
+
+            await generateMap(coordinates);
+          }
+
+          main().catch(e => { console.error(e); process.exit(1); });
+        '
+
+    - name: Commit and push if changed
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "docs: update followers map"
+        file_pattern: "followers-map.png"
+        commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
