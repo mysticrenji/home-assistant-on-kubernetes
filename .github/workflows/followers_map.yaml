@@ -1,9 +1,6 @@
 name: Generate Followers Map
 
 on:
-  push:
-    branches:
-      - add-map-followers
   schedule:
     - cron: '0 0 */3 * *'  # Runs every 3 days at midnight UTC
 
