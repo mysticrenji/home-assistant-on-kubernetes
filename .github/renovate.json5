@@ -1,53 +1,72 @@
 {
-  "extends": [
-    "config:base"
+  extends: [
+    'config:recommended',
   ],
-  "packageRules": [
+  packageRules: [
     {
-      "description": "Update Docker images in Kubernetes manifests",
-      "matchDatasources": ["docker"],
-      "matchManagers": ["regex"],
-      "matchPackagePatterns": [
-        "^image: ([\\w\\.-]+/[\\w\\.-]+):([\\w\\.-]+)$"
+      description: 'Update Docker images in Kubernetes manifests',
+      matchDatasources: [
+        'docker',
       ],
-      "extractVersion": "^image: [\\w\\.-]+/[\\w\\.-]+:([\\w\\.-]+)$",
-      "datasourceTemplate": "docker"
+      matchManagers: [
+        'custom.regex',
+      ],
+      extractVersion: '^image: [\\w\\.-]+/[\\w\\.-]+:([\\w\\.-]+)$',
+      datasourceTemplate: 'docker',
+      matchPackageNames: [
+        '/^image: ([\\w\\.-]+/[\\w\\.-]+):([\\w\\.-]+)$/',
+      ],
     },
     {
-      "description": "Update Helm charts in Kubernetes manifests",
-      "matchDatasources": ["helm"],
-      "matchManagers": ["helm-requirements"],
-      "matchPackagePatterns": [
-        "^name: ([\\w-]+)$"
+      description: 'Update Helm charts in Kubernetes manifests',
+      matchDatasources: [
+        'helm',
       ],
-      "extractVersion": "^version: ([\\w\\.-]+)$",
-      "datasourceTemplate": "helm"
+      matchManagers: [
+        'helm-requirements',
+      ],
+      extractVersion: '^version: ([\\w\\.-]+)$',
+      datasourceTemplate: 'helm',
+      matchPackageNames: [
+        '/^name: ([\\w-]+)$/',
+      ],
     },
     {
-      "description": "Update Kubernetes API versions",
-      "matchDatasources": ["kubernetes"],
-      "matchManagers": ["regex"],
-      "matchPackagePatterns": [
-        "^apiVersion: ([\\w\\.-]+)/([\\w\\.-]+)$"
+      description: 'Update Kubernetes API versions',
+      matchDatasources: [
+        'kubernetes',
       ],
-      "extractVersion": "^apiVersion: [\\w\\.-]+/([\\w\\.-]+)$",
-      "datasourceTemplate": "kubernetes"
-    }
+      matchManagers: [
+        'custom.regex',
+      ],
+      extractVersion: '^apiVersion: [\\w\\.-]+/([\\w\\.-]+)$',
+      datasourceTemplate: 'kubernetes',
+      matchPackageNames: [
+        '/^apiVersion: ([\\w\\.-]+)/([\\w\\.-]+)$/',
+      ],
+    },
   ],
-  "regexManagers": [
+  customManagers: [
     {
-      "fileMatch": ["\\.ya?ml$"],
-      "matchStrings": [
-        "image: (?<depName>[\\w\\.-]+/[\\w\\.-]+):(?<currentValue>[\\w\\.-]+)"
+      customType: 'regex',
+      managerFilePatterns: [
+        '/\\.ya?ml$/',
       ],
-      "datasourceTemplate": "docker"
+      matchStrings: [
+        'image: (?<depName>[\\w\\.-]+/[\\w\\.-]+):(?<currentValue>[\\w\\.-]+)',
+      ],
+      datasourceTemplate: 'docker',
     },
     {
-      "fileMatch": ["Chart\\.yaml$", "requirements\\.yaml$"],
-      "matchStrings": [
-        "name: (?<depName>[\\w-]+)\\nversion: (?<currentValue>[\\w\\.-]+)"
+      customType: 'regex',
+      managerFilePatterns: [
+        '/Chart\\.yaml$/',
+        '/requirements\\.yaml$/',
       ],
-      "datasourceTemplate": "helm"
-    }
-  ]
+      matchStrings: [
+        'name: (?<depName>[\\w-]+)\\nversion: (?<currentValue>[\\w\\.-]+)',
+      ],
+      datasourceTemplate: 'helm',
+    },
+  ],
 }
