@@ -148,7 +148,7 @@ jobs:
         '
 
     - name: Commit and push if changed
-      uses: stefanzweifel/git-auto-commit-action@v4
+      uses: stefanzweifel/git-auto-commit-action@v6
       with:
         commit_message: "docs: update followers map"
         file_pattern: "followers-map.png"
