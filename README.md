@@ -59,7 +59,7 @@ In this setup, we have:
 
 ### 3.1. K3s Installation
 ```bash
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.31.4+k3s1" sh -s -
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --tls-san SERVERIP --disable servicelb --disable traefik --write-kubeconfig-mode 644 --cluster-cidr=10.10.0.0/16" INSTALL_K3S_VERSION="v1.35.0+k3s1" sh -s -
 ```
 
 ### 3.2. Nvidia Setup
