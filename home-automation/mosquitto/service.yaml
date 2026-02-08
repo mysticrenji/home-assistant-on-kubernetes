@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: home-assistant
+  name: mosquitto-service
+spec:
+  selector:
+    app: mosquitto
+  type: ClusterIP
+  ports:
+  - name: mqtt
+    protocol: TCP
+    port: 1883
+    targetPort: 1883
+  - name: websocket
+    protocol: TCP
+    port: 9001
+    targetPort: 9001

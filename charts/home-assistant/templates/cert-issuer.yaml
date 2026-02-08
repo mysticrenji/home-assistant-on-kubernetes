@@ -1,0 +1,21 @@
+{{- if .Values.certIssuer.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: {{ .Values.certIssuer.server }}
+    {{- if .Values.certIssuer.email }}
+    email: {{ .Values.certIssuer.email }}
+    {{- end }}
+    privateKeySecretRef:
+      name: letsencrypt
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+{{- end }}

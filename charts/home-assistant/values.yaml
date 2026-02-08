@@ -1,0 +1,162 @@
+# ──────────────────────────────────────────────
+# Namespace — all resources are created here
+# ──────────────────────────────────────────────
+namespace: home-assistant
+
+# ──────────────────────────────────────────────
+# Home Assistant — core home automation platform
+# Docs: https://www.home-assistant.io/
+# ──────────────────────────────────────────────
+homeAssistant:
+  image:
+    repository: homeassistant/home-assistant
+    tag: "2026.2.1"
+
+  resources:
+    requests:
+      memory: "256Mi"
+    limits:
+      memory: "512Mi"
+
+  # Persistent storage for /config (contains database, integrations, etc.)
+  pvc:
+    size: 9Gi
+    storageClass: ""   # Leave empty to use cluster default
+
+  # Host networking is required for mDNS discovery and certain integrations.
+  # Set to false if running in cloud environments without hardware.
+  hostNetwork: true
+
+  # Privileged mode is needed for USB device access and Bluetooth.
+  # Set to false if no host devices are required.
+  privileged: true
+
+  # ── Host devices ──
+  devices:
+    # Zigbee USB dongle (e.g. ConBee II, Sonoff Zigbee 3.0)
+    # Find your device path with: ls /dev/ttyUSB* /dev/ttyACM*
+    zigbee:
+      enabled: false
+      path: /dev/ttyUSB1
+
+    # D-Bus socket — required for Bluetooth (Bluez) to work
+    dbus:
+      enabled: true
+      path: /run/dbus
+
+  # ── Sidecar: Bluetooth/Bluez ──
+  # Provides BLE (Bluetooth Low Energy) support for sensors like
+  # plant soil monitors, temperature beacons, etc.
+  bluez:
+    enabled: true
+    image:
+      repository: ghcr.io/mysticrenji/bluez-service
+      tag: "v1.0.0"
+
+  # ── Sidecar: Matter Server ──
+  # Enables Matter/Thread smart home protocol support.
+  # Docs: https://github.com/home-assistant-libs/python-matter-server
+  matter:
+    enabled: true
+    image:
+      repository: ghcr.io/home-assistant-libs/python-matter-server
+      tag: stable
+    port: 5580
+
+  # ── configuration.yaml ──
+  # This is injected as /config/configuration.yaml inside the HA container.
+  # Customize with any valid Home Assistant configuration.
+  # Docs: https://www.home-assistant.io/docs/configuration/
+  configuration: |
+    default_config:
+    frontend:
+      themes: !include_dir_merge_named themes
+    tts:
+      - platform: google_translate
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
+
+# ──────────────────────────────────────────────
+# Z-Wave JS — Z-Wave device management
+# Provides a web UI (port 8091) and WebSocket API (port 3000)
+# Docs: https://zwave-js.github.io/zwave-js-ui/
+# ──────────────────────────────────────────────
+zwavejs:
+  enabled: true
+  image:
+    repository: zwavejs/zwavejs2mqtt
+    tag: "11.11.0"
+
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+  pvc:
+    size: 500Mi
+    storageClass: ""
+
+  service:
+    type: NodePort       # Use NodePort for direct access, ClusterIP for internal only
+    nodePort: 30091      # Only used when type is NodePort
+
+  devices:
+    # Z-Wave USB dongle (e.g. Aeotec Z-Stick, Zooz ZST10)
+    # Find your device path with: ls /dev/ttyUSB* /dev/ttyACM*
+    # Set to empty string "" to skip mounting (e.g. in CI environments)
+    zwave:
+      path: /dev/ttyACM0
+
+# ──────────────────────────────────────────────
+# Mosquitto — MQTT message broker
+# Used for device-to-HA communication via MQTT protocol
+# Docs: https://mosquitto.org/
+# ──────────────────────────────────────────────
+mosquitto:
+  enabled: true
+  image:
+    repository: eclipse-mosquitto
+    tag: latest
+
+  resources:
+    requests:
+      memory: "32Mi"
+      cpu: "25m"
+    limits:
+      memory: "128Mi"
+      cpu: "250m"
+
+  service:
+    type: ClusterIP      # ClusterIP is usually sufficient (HA connects internally)
+
+  ports:
+    mqtt: 1883           # Standard MQTT port
+    websocket: 9001      # MQTT over WebSocket
+
+# ──────────────────────────────────────────────
+# Ingress — external access to Home Assistant
+# Requires an Ingress controller (e.g. ingress-nginx) in the cluster
+# ──────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx
+  host: home-automation.io   # Replace with your domain
+  tls:
+    enabled: true
+    secretName: letsencrypt  # TLS cert Secret (auto-created by cert-manager, or provide your own)
+
+# ──────────────────────────────────────────────
+# Certificate Issuer — automatic TLS via Let's Encrypt
+# Requires cert-manager to be installed in the cluster:
+#   helm install cert-manager jetstack/cert-manager --set installCRDs=true
+# ──────────────────────────────────────────────
+certIssuer:
+  enabled: true
+  email: ""              # Required — your email for Let's Encrypt notifications
+  server: https://acme-v02.api.letsencrypt.org/directory
+  # For testing, use the staging server to avoid rate limits:
+  # server: https://acme-staging-v02.api.letsencrypt.org/directory

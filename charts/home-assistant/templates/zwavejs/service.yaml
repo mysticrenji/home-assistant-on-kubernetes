@@ -1,0 +1,27 @@
+{{- if .Values.zwavejs.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: zwavejs2mqtt
+  labels:
+    app: zwavejs2mqtt
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: zwavejs2mqtt
+  type: {{ .Values.zwavejs.service.type }}
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8091
+    targetPort: 8091
+    {{- if eq .Values.zwavejs.service.type "NodePort" }}
+    nodePort: {{ .Values.zwavejs.service.nodePort }}
+    {{- end }}
+  - name: ws
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+{{- end }}

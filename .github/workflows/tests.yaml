@@ -13,8 +13,27 @@ on:
       - main
 
 jobs:
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint chart
+        run: helm lint charts/home-assistant
+
+      - name: Template validation (default values)
+        run: helm template test charts/home-assistant
+
+      - name: Template validation (test values)
+        run: helm template test charts/home-assistant -f charts/home-assistant/values-test.yaml
+
   setup-kind:
     runs-on: ubuntu-latest
+    needs: helm-lint
     services:
       docker:
         image: docker:29.2.1
@@ -22,7 +41,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-        
+
       - name: Install necessary packages (curl, kubectl, kind)
         run: |
           sudo apt-get update
@@ -35,6 +54,9 @@ jobs:
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/kubectl
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
 
       - name: Create Kind Cluster
         run: kind create cluster --wait 5m
@@ -49,12 +71,11 @@ jobs:
         run: |
           kubectl cluster-info
           kubectl get nodes
-          
-      - name: Apply Kubernetes Manifests
+
+      - name: Install Helm chart with test values
         run: |
-          kubectl apply -f ./home-automation/clean_install/
+          helm install ha-test charts/home-assistant -f charts/home-assistant/values-test.yaml
           sleep 5
-          #POD_NAME=$(kubectl get pods -n ha-test -l app=ha-test -o jsonpath='{.items[0].metadata.name}')
           for i in {1..18}; do
             kubectl get pods -n ha-test -o wide
             sleep 10;

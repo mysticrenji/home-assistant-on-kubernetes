@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: home-assistant
+  name: zwavejs2mqtt
+  labels:
+    app: zwavejs2mqtt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zwavejs2mqtt
+  template:
+    metadata:
+      labels:
+        app: zwavejs2mqtt
+    spec:
+      containers:
+      - name: zwavejs2mqtt
+        image: zwavejs/zwavejs2mqtt:11.11.0
+        ports:
+        - containerPort: 8091
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8091
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /usr/src/app/store
+          name: configuration
+        - mountPath: /dev/ttyACM0
+          name: zwave
+        securityContext:
+          privileged: true
+      volumes:
+      - name: configuration
+        persistentVolumeClaim:
+          claimName: zwavejs2mqtt-pvc
+      - name: zwave
+        hostPath:
+          path: /dev/ttyACM0

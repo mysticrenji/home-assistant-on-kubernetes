@@ -74,7 +74,9 @@ metadata:
 data:
   config.yaml: |
     # Name of the tunnel you want to run
-    tunnel: 4e60c4a5-dea0-488a-9ed8-2ce8da38b152
+    # Store tunnel ID in a Secret and reference it here, or set via environment variable:
+    # kubectl create secret generic cloudflare-tunnel-id -n cloudflare --from-literal=tunnel-id=YOUR_TUNNEL_ID
+    tunnel: REPLACE_WITH_YOUR_TUNNEL_ID
     credentials-file: /etc/cloudflared/creds/credentials.json
     # Serves the metrics server under /metrics and the readiness server under /ready
     metrics: 0.0.0.0:2000

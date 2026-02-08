@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: home-assistant
+  name: home-assistant
+  labels:
+    app: home-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-assistant
+  template:
+    metadata:
+      labels:
+        app: home-assistant
+    spec:
+      containers:
+      - name: bluez
+        image: ghcr.io/mysticrenji/bluez-service:v1.0.0
+        securityContext:
+          privileged: true
+      - name: matter-server
+        image: ghcr.io/home-assistant-libs/python-matter-server:stable
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        imagePullPolicy: Always
+        args:
+          - --storage-path=/data
+          - --paa-root-cert-dir=/data/credentials
+          - --bluetooth-adapter=0
+        ports:
+        - containerPort: 5580
+      - name: home-assistant
+        image: homeassistant/home-assistant:2026.2.1
+        resources:
+          requests:
+            memory: "256Mi"
+          limits:
+            memory: "512Mi"
+        ports:
+        - containerPort: 8123
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        - mountPath: /config/configuration.yaml
+          subPath: configuration.yaml
+          name: configmap-file
+        - mountPath: /config/automations.yaml
+          subPath: automations.yaml
+          name: configmap-file
+        - mountPath: /media
+          name: media-volume
+        - mountPath: /run/dbus
+          name: d-bus
+        - mountPath: /dev/ttyUSB1
+          name: zigbee
+        - name: data-volume
+          mountPath: /data
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+      hostNetwork: true
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: home-assistant-pvc
+      - name: media-volume
+        hostPath:
+          path: /tmp/media
+      - name: configmap-file
+        configMap:
+          name: home-assistant-configmap
+      - name: d-bus
+        hostPath:
+          path: /run/dbus
+      - name: data-volume
+        hostPath:
+          path: /tmp/media
+      - name: zigbee
+        hostPath:
+          path: /dev/ttyACM0

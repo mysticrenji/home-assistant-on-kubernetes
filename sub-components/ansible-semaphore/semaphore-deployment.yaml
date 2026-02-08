@@ -25,8 +25,13 @@ spec:
               value: admin@localhost
             - name: SEMAPHORE_ADMIN_NAME
               value: admin
+            # Create a Secret with:
+            # kubectl create secret generic semaphore-admin -n semaphore --from-literal=password=YOUR_PASSWORD
             - name: SEMAPHORE_ADMIN_PASSWORD
-              value: changeme
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-admin
+                  key: password
             - name: SEMAPHORE_DB_DIALECT
               value: bolt
           image: semaphoreui/semaphore:v2.19.10

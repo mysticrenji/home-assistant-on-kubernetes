@@ -1,0 +1,43 @@
+{{- if .Values.mosquitto.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mosquitto
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: {{ .Values.mosquitto.image.repository }}:{{ .Values.mosquitto.image.tag }}
+        ports:
+        - containerPort: {{ .Values.mosquitto.ports.mqtt }}
+        - containerPort: {{ .Values.mosquitto.ports.websocket }}
+        resources:
+          {{- toYaml .Values.mosquitto.resources | nindent 10 }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.mosquitto.ports.mqtt }}
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.mosquitto.ports.mqtt }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1883
+          readOnlyRootFilesystem: true
+{{- end }}
