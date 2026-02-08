@@ -1,0 +1,26 @@
+# Helm
+charts/*/charts/
+*.tgz
+.helm-packages/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets - never commit these
+*.key
+*.pem
+credentials.json
+.env
+
+# Node (used by followers_map workflow)
+node_modules/
+package.json
+package-lock.json

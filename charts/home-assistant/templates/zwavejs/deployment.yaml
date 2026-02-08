@@ -1,0 +1,53 @@
+{{- if .Values.zwavejs.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: zwavejs2mqtt
+  labels:
+    app: zwavejs2mqtt
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zwavejs2mqtt
+  template:
+    metadata:
+      labels:
+        app: zwavejs2mqtt
+    spec:
+      containers:
+      - name: zwavejs2mqtt
+        image: {{ .Values.zwavejs.image.repository }}:{{ .Values.zwavejs.image.tag }}
+        ports:
+        - containerPort: 8091
+        - containerPort: 3000
+        resources:
+          {{- toYaml .Values.zwavejs.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8091
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /usr/src/app/store
+          name: configuration
+        {{- if .Values.zwavejs.devices.zwave.path }}
+        - mountPath: {{ .Values.zwavejs.devices.zwave.path }}
+          name: zwave
+        {{- end }}
+        securityContext:
+          privileged: true
+      volumes:
+      - name: configuration
+        persistentVolumeClaim:
+          claimName: zwavejs2mqtt-pvc
+      {{- if .Values.zwavejs.devices.zwave.path }}
+      - name: zwave
+        hostPath:
+          path: {{ .Values.zwavejs.devices.zwave.path }}
+      {{- end }}
+{{- end }}

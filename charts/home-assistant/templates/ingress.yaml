@@ -1,0 +1,33 @@
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-home-automation
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- if .Values.certIssuer.enabled }}
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    {{- end }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: home-assistant
+              port:
+                number: 80
+{{- end }}

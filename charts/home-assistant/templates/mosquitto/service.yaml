@@ -1,0 +1,24 @@
+{{- if .Values.mosquitto.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: mosquitto-service
+  labels:
+    app: mosquitto
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: mosquitto
+  type: {{ .Values.mosquitto.service.type }}
+  ports:
+  - name: mqtt
+    protocol: TCP
+    port: {{ .Values.mosquitto.ports.mqtt }}
+    targetPort: {{ .Values.mosquitto.ports.mqtt }}
+  - name: websocket
+    protocol: TCP
+    port: {{ .Values.mosquitto.ports.websocket }}
+    targetPort: {{ .Values.mosquitto.ports.websocket }}
+{{- end }}

@@ -1,0 +1,100 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: home-assistant
+  labels:
+    app: home-assistant
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-assistant
+  template:
+    metadata:
+      labels:
+        app: home-assistant
+    spec:
+      containers:
+      {{- if .Values.homeAssistant.bluez.enabled }}
+      - name: bluez
+        image: {{ .Values.homeAssistant.bluez.image.repository }}:{{ .Values.homeAssistant.bluez.image.tag }}
+        securityContext:
+          privileged: true
+      {{- end }}
+      {{- if .Values.homeAssistant.matter.enabled }}
+      - name: matter-server
+        image: {{ .Values.homeAssistant.matter.image.repository }}:{{ .Values.homeAssistant.matter.image.tag }}
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        imagePullPolicy: Always
+        args:
+          - --storage-path=/data
+          - --paa-root-cert-dir=/data/credentials
+          - --bluetooth-adapter=0
+        ports:
+        - containerPort: {{ .Values.homeAssistant.matter.port }}
+      {{- end }}
+      - name: home-assistant
+        image: {{ .Values.homeAssistant.image.repository }}:{{ .Values.homeAssistant.image.tag }}
+        resources:
+          {{- toYaml .Values.homeAssistant.resources | nindent 10 }}
+        ports:
+        - containerPort: 8123
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        - mountPath: /config/configuration.yaml
+          subPath: configuration.yaml
+          name: configmap-file
+        - mountPath: /config/automations.yaml
+          subPath: automations.yaml
+          name: configmap-file
+        - mountPath: /media
+          name: media-volume
+        {{- if .Values.homeAssistant.devices.dbus.enabled }}
+        - mountPath: /run/dbus
+          name: d-bus
+        {{- end }}
+        {{- if .Values.homeAssistant.devices.zigbee.enabled }}
+        - mountPath: {{ .Values.homeAssistant.devices.zigbee.path }}
+          name: zigbee
+        {{- end }}
+        - name: data-volume
+          mountPath: /data
+        securityContext:
+          privileged: {{ .Values.homeAssistant.privileged }}
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+      hostNetwork: {{ .Values.homeAssistant.hostNetwork }}
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: home-assistant-pvc
+      - name: media-volume
+        hostPath:
+          path: /tmp/media
+      - name: configmap-file
+        configMap:
+          name: home-assistant-configmap
+      {{- if .Values.homeAssistant.devices.dbus.enabled }}
+      - name: d-bus
+        hostPath:
+          path: {{ .Values.homeAssistant.devices.dbus.path }}
+      {{- end }}
+      - name: data-volume
+        hostPath:
+          path: /tmp/media
+      {{- if .Values.homeAssistant.devices.zigbee.enabled }}
+      - name: zigbee
+        hostPath:
+          path: {{ .Values.homeAssistant.devices.zigbee.path }}
+      {{- end }}

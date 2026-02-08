@@ -18,9 +18,11 @@ For a complete walkthrough of this setup, please refer to my Medium article seri
    - [3.3. Cloudflare Setup](#33-cloudflare-setup)
    - [3.4. MetalLB Installation](#34-metallb-installation)
    - [3.5. Cert Manager Installation](#35-cert-manager-installation)
-4. [Multi-Node Setup](#multi-node-setup)
-5. [FAQ](#faq)
-6. [Project Statistics](#project-statistics)
+4. [Helm Chart Installation](#helm-chart-installation)
+5. [Migration from Raw Manifests](#migration-from-raw-manifests)
+6. [Multi-Node Setup](#multi-node-setup)
+7. [FAQ](#faq)
+8. [Project Statistics](#project-statistics)
 
 ## 1. Overview
 Personal project to run home-assistant on K3s locally on Nvidia Jetson(ARM64). This project demonstrates running Home Assistant in a Kubernetes environment with various integrations.
@@ -107,7 +109,104 @@ helm repo update
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set installCRDs=true
 ```
 
-## 4. Multi-Node Setup
+## 4. Helm Chart Installation
+
+A Helm chart is available for deploying the core Home Assistant stack (Home Assistant, Z-Wave JS, Mosquitto). The chart is published automatically via GitHub Pages when changes are pushed to `main`.
+
+### From the Helm repository
+
+```bash
+helm repo add home-assistant https://mysticrenji.github.io/home-assistant-on-kubernetes
+helm repo update
+helm install my-ha home-assistant/home-assistant -f my-values.yaml
+```
+
+### From local source
+
+```bash
+git clone https://github.com/mysticrenji/home-assistant-on-kubernetes.git
+cd home-assistant-on-kubernetes
+helm install my-ha ./charts/home-assistant -f my-values.yaml
+```
+
+### Minimal example (no hardware devices)
+
+```yaml
+# my-values.yaml
+homeAssistant:
+  hostNetwork: false
+  privileged: false
+  bluez:
+    enabled: false
+  matter:
+    enabled: false
+  devices:
+    zigbee:
+      enabled: false
+    dbus:
+      enabled: false
+zwavejs:
+  enabled: false
+ingress:
+  enabled: false
+certIssuer:
+  enabled: false
+```
+
+### Full example (Zigbee + Z-Wave + Bluetooth + Ingress)
+
+```yaml
+# my-values.yaml
+homeAssistant:
+  pvc:
+    size: 20Gi
+  devices:
+    zigbee:
+      enabled: true
+      path: /dev/ttyUSB1
+    dbus:
+      enabled: true
+  bluez:
+    enabled: true
+  matter:
+    enabled: true
+zwavejs:
+  enabled: true
+  devices:
+    zwave:
+      path: /dev/ttyACM0
+mosquitto:
+  enabled: true
+ingress:
+  enabled: true
+  host: home.example.com
+certIssuer:
+  enabled: true
+  email: you@example.com
+```
+
+### Accessing the dashboard
+
+- **With Ingress**: `https://<your-host>` (e.g. `https://home.example.com`)
+- **With hostNetwork**: `http://<node-ip>:8123`
+- **Port forward**: `kubectl port-forward -n home-assistant svc/home-assistant 8123:80`
+
+### Full configuration reference
+
+For the complete list of all configurable values, example configurations, device path discovery, and troubleshooting, see [charts/home-assistant/README.md](charts/home-assistant/README.md).
+
+## 5. Migration from Raw Manifests
+
+If you are currently using the raw Kubernetes manifests in `home-automation/`, you can migrate to the Helm chart:
+
+1. Back up your existing PVC data
+2. Delete the existing resources: `kubectl delete -f home-automation/`
+3. Create a `my-values.yaml` with your customizations (device paths, domain, storage sizes)
+4. Install via Helm: `helm install my-ha ./charts/home-assistant -f my-values.yaml`
+
+The raw manifests in `home-automation/` are kept as reference but the Helm chart is the recommended deployment method.
+
+## 6. Multi-Node Setup
 1. Install Tailscale VPN on all nodes:
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
@@ -119,7 +218,7 @@ TOKEN="get token from the control server"
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" INSTALL_K3S_VERSION="v1.31.4+k3s1" K3S_URL=http://[ipfromtailscale]:6443 K3S_TOKEN=$TOKEN sh -s - --snapshotter=native
 ```
 
-## 5. FAQ
+## 7. FAQ
 **Q: How to enable HACS Addon on Home Assistant?**  
 A: Install HACS manually by running this command in the Home Assistant Pod:
 ```bash
@@ -127,7 +226,7 @@ wget -O - https://get.hacs.xyz | bash -
 ```
 Then restart the deployment to see HACS in the left-hand side panel.
 
-## 6. Project Statistics
+## 8. Project Statistics
 [![Star History Chart](https://api.star-history.com/svg?repos=mysticrenji/home-assistant-on-kubernetes&type=Date)](https://star-history.com/#mysticrenji/home-assistant-on-kubernetes&Date)
 
 ### Stars World Map

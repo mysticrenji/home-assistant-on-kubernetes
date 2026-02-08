@@ -68,5 +68,17 @@
       ],
       datasourceTemplate: 'helm',
     },
+    {
+      customType: 'regex',
+      description: 'Update Home Assistant appVersion in Chart.yaml',
+      managerFilePatterns: [
+        '/charts/home-assistant/Chart\\.yaml$/',
+      ],
+      matchStrings: [
+        'appVersion: "(?<currentValue>[\\w\\.-]+)"',
+      ],
+      depNameTemplate: 'homeassistant/home-assistant',
+      datasourceTemplate: 'docker',
+    },
   ],
 }

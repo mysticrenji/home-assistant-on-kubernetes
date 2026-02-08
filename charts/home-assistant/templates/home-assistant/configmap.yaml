@@ -1,0 +1,14 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: home-assistant-configmap
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: home-assistant
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+  known_devices.yaml: |
+  automations.yaml: |
+  configuration.yaml: |-
+{{ .Values.homeAssistant.configuration | indent 4 }}
