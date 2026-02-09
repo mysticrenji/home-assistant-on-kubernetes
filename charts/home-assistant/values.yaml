@@ -51,7 +51,7 @@ homeAssistant:
     enabled: true
     image:
       repository: ghcr.io/mysticrenji/bluez-service
-      tag: "v1.0.0"
+      tag: "v1.1.0"
 
   # ── Sidecar: Matter Server ──
   # Enables Matter/Thread smart home protocol support.
