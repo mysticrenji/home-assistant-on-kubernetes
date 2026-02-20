@@ -86,7 +86,7 @@ zwavejs:
   enabled: true
   image:
     repository: zwavejs/zwavejs2mqtt
-    tag: "11.11.0"
+    tag: "11.12.0"
 
   resources:
     requests:
