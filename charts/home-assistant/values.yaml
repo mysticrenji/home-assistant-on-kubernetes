@@ -10,7 +10,7 @@ namespace: home-assistant
 homeAssistant:
   image:
     repository: homeassistant/home-assistant
-    tag: "2026.2.2"
+    tag: "2026.2.3"
 
   resources:
     requests:

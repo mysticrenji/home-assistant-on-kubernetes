@@ -3,7 +3,7 @@ name: home-assistant
 description: A Helm chart for deploying Home Assistant on Kubernetes with Z-Wave JS and Mosquitto
 type: application
 version: 0.1.0
-appVersion: "2026.2.2"
+appVersion: "2026.2.3"
 maintainers:
   - name: mysticrenji
 keywords:
