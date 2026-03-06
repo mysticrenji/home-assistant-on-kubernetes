@@ -36,7 +36,7 @@ jobs:
     needs: helm-lint
     services:
       docker:
-        image: docker:29.2.1
+        image: docker:29.3.0
         options: --privileged
     steps:
       - name: Checkout code
