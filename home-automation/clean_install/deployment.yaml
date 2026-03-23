@@ -42,7 +42,7 @@ spec:
       #   securityContext:
       #     privileged: true
       - name: ha-test
-        image: homeassistant/home-assistant:2026.3.1
+        image: homeassistant/home-assistant:2026.3.3
 #        resources:
 #          requests:
 #            memory: "1Gi"
