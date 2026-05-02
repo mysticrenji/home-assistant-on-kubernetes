@@ -3,10 +3,10 @@ entries:
   home-assistant:
   - apiVersion: v2
     appVersion: 2026.4.4
-    created: "2026-05-02T19:31:32.157232756Z"
+    created: "2026-05-02T19:32:04.196305488Z"
     description: A Helm chart for deploying Home Assistant on Kubernetes with Z-Wave
       JS and Mosquitto
-    digest: 2170e98474a7f61eb981a87425ed2a3cb51bc417b93ea1892e2a0d3ac99bdb01
+    digest: 209286c9cf33d560ea241ffa021dd03edd67ae6bedb7041d3ba3f0c7fdda8c4d
     keywords:
     - home-assistant
     - iot
@@ -20,4 +20,4 @@ entries:
     urls:
     - https://mysticrenji.github.io/home-assistant-on-kubernetes/home-assistant-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-02T19:31:32.156479089Z"
+generated: "2026-05-02T19:32:04.195518399Z"
