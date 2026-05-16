@@ -1,4 +1,4 @@
-# Home-Assistant on K3s Cluster
+# Home-Assistant on Kubernetes
 
 [![Docker Build for Bluez Service](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/main.yaml)
 [![Nightly Build test for Home Assistant](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/mysticrenji/home-assistant-on-kubernetes/actions/workflows/tests.yaml)
