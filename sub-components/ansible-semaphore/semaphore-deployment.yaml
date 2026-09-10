@@ -34,7 +34,7 @@ spec:
                   key: password
             - name: SEMAPHORE_DB_DIALECT
               value: bolt
-          image: semaphoreui/semaphore:v2.19.10
+          image: semaphoreui/semaphore:v2.19.14
           name: semaphore
           ports:
             - containerPort: 3000
